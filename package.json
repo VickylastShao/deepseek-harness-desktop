@@ -2,10 +2,16 @@
   "name": "deepseek-harness-desktop",
   "version": "0.1.0",
   "description": "Cross-platform desktop launcher for DeepSeek Harness",
-  "homepage": "https://github.com/deepseek-ai/deepseek-harness",
+  "homepage": "https://github.com/VickylastShao/deepseek-harness-desktop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VickylastShao/deepseek-harness-desktop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VickylastShao/deepseek-harness-desktop/issues"
+  },
   "author": {
-    "name": "Zhuang Shao",
-    "email": "vickshao@foxmail.com"
+    "name": "Zhuang Shao"
   },
   "desktopName": "ai.deepseek.harness.desktop",
   "main": "src/main.cjs",
@@ -30,7 +36,10 @@
   "dependencies": {
     "node": "24.18.1",
     "semver": "7.7.3",
-    "tar": "7.5.9"
+    "tar": "7.5.22"
+  },
+  "overrides": {
+    "tar": "$tar"
   },
   "runtimeChannel": ""
 }

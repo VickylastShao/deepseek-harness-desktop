@@ -2,6 +2,11 @@
 
 这是 DeepSeek Harness 的 Electron 桌面封装。应用内置独立 Node.js 和经过验证的 Harness 运行时，用户启动应用时不需要打开终端，也不需要预装 Node.js、npm 或编译工具链。
 
+> 本项目是社区维护的非官方封装，不是 DeepSeek 官方产品。DeepSeek Harness
+> 仍由 DeepSeek 开发和维护。
+
+[English](README.md) | 中文
+
 ## 更新行为
 
 启动路径完全不访问网络：
@@ -49,6 +54,9 @@ npm run dist -- --linux --x64
 
 自动更新通道要求 GitHub 仓库和 `runtime-channel` Release 可匿名下载；私有仓库需要改成支持客户端认证的 HTTPS 文件服务。CI 会把当前仓库的固定更新 URL 写入安装包，源码中的 `runtimeChannel` 默认留空，防止未配置仓库时误连占位地址。
 
+正式安装包在 [GitHub Releases](https://github.com/VickylastShao/deepseek-harness-desktop/releases)
+发布。
+
 ## 签名边界
 
 当前工作流明确生成未签名安装包。文件本身可构建和校验，但 Windows SmartScreen 和 macOS Gatekeeper 可能显示未知发布者。正式分发应在对应平台配置代码签名；macOS 的签名和公证必须在 macOS runner 完成。不要把未签名构建描述为已通过操作系统发布者验证。
@@ -56,3 +64,8 @@ npm run dist -- --linux --x64
 ## 本地数据
 
 Harness 数据、活动运行时、pending 更新和日志均位于 Electron `userData` 目录。卸载程序默认不删除用户数据。退出应用时会终止 Harness 及其子进程树；如果后台下载仍在进行，会先取消并清理 staging 文件。
+
+## 许可证
+
+本桌面封装采用 [MIT License](LICENSE)。DeepSeek Harness 和其他依赖保留各自的许可证，详见
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
