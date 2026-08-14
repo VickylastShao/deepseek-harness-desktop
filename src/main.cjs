@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 const { readFileSync } = require('node:fs')
 const { mkdir, appendFile } = require('node:fs/promises')
 const {
@@ -19,6 +20,7 @@ const {
   trayLabels,
 } = require('./desktop-tray.cjs')
 const { DesktopAppUpdater } = require('./desktop-app-updater.cjs')
+const { createDesktopSnapshot, validatePreferenceChange } = require('./desktop-center.cjs')
 const {
   applyLoginItemPreference,
   DesktopPreferencesStore,
@@ -30,12 +32,14 @@ const { RuntimeRecoveryController } = require('./runtime-recovery.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
 const {
+  createDesktopCenterWindowOptions,
   createWindowOptions,
   isAllowedRuntimeUrl,
   isSafeExternalUrl,
 } = require('./window-policy.cjs')
 
 let mainWindow
+let desktopCenterWindow
 let trayController
 let runtimeOrigin
 let harnessProcess
@@ -56,6 +60,9 @@ let preferences
 let preferencesStore
 let runtimeRecovery
 let desktopAppUpdater
+let desktopUpdateState = { enabled: false, phase: 'disabled' }
+let runtimeUpdateState = { phase: 'idle' }
+let runtimeLifecycle = { phase: 'starting' }
 
 function bundledNodeTools() {
   const nodePackageDir = app.isPackaged
@@ -111,6 +118,7 @@ function initializeTray(window) {
     onQuit: () => app.quit(),
     onCheckUpdates: () => checkRuntimeUpdateNow(),
     onCheckDesktopUpdates: () => desktopAppUpdater?.checkNow(),
+    onOpenDesktopCenter: () => showDesktopCenter(),
     onPreferenceChange: patch => updatePreferences(patch),
     onRestart: () => restartRuntime(),
     openPath: target => shell.openPath(target),
@@ -121,9 +129,44 @@ function initializeTray(window) {
     preferences,
   })
   trayController.initialize(window)
-  if (desktopAppUpdater !== undefined) {
-    trayController.setDesktopUpdateState(desktopAppUpdater.state)
+  trayController.setRuntimeUpdateState(runtimeUpdateState)
+  trayController.setDesktopUpdateState(desktopUpdateState)
+}
+
+function desktopSnapshot() {
+  return createDesktopSnapshot({
+    appVersion: app.getVersion(),
+    desktopUpdateState,
+    runtimeLifecycle,
+    runtimeUpdateState,
+    preferences,
+    loginItemSupported: loginItemSupported(),
+    dataPath: app.getPath('userData'),
+    logPath: logDirectory ?? path.join(app.getPath('userData'), 'logs'),
+  })
+}
+
+function broadcastDesktopSnapshot() {
+  if (desktopCenterWindow !== undefined && !desktopCenterWindow.isDestroyed()) {
+    desktopCenterWindow.webContents.send('desktop-center:changed', desktopSnapshot())
   }
+}
+
+function setRuntimeUpdateState(patch) {
+  runtimeUpdateState = { ...runtimeUpdateState, ...patch }
+  trayController?.setRuntimeUpdateState(runtimeUpdateState)
+  broadcastDesktopSnapshot()
+}
+
+function setDesktopUpdateState(patch) {
+  desktopUpdateState = { ...desktopUpdateState, ...patch }
+  trayController?.setDesktopUpdateState(desktopUpdateState)
+  broadcastDesktopSnapshot()
+}
+
+function setRuntimeLifecycle(patch) {
+  runtimeLifecycle = { ...runtimeLifecycle, ...patch }
+  broadcastDesktopSnapshot()
 }
 
 function desktopUpdatesEnabled() {
@@ -140,7 +183,7 @@ function initializeDesktopAppUpdater() {
     currentVersion: app.getVersion(),
     delayMs: updateDelayFromEnvironment('DSH_DESKTOP_UPDATE_DELAY_MS', 60_000),
     intervalMs: updateDelayFromEnvironment('DSH_DESKTOP_UPDATE_INTERVAL_MS', 6 * 60 * 60_000),
-    onState: state => trayController?.setDesktopUpdateState(state),
+    onState: state => setDesktopUpdateState(state),
     onError: error => writeLog('desktop-updater', `${error.stack ?? error.message}\n`),
   })
 }
@@ -156,7 +199,29 @@ async function updatePreferences(patch) {
   if (patch.openAtLogin !== undefined) {
     applyLoginItemPreference(app, preferences.openAtLogin)
   }
+  broadcastDesktopSnapshot()
   return preferences
+}
+
+async function showDesktopCenter() {
+  if (desktopCenterWindow !== undefined && !desktopCenterWindow.isDestroyed()) {
+    if (desktopCenterWindow.isMinimized()) desktopCenterWindow.restore()
+    desktopCenterWindow.show()
+    desktopCenterWindow.focus()
+    return
+  }
+  const window = new BrowserWindow(createDesktopCenterWindowOptions(__dirname))
+  desktopCenterWindow = window
+  const expectedUrl = pathToFileURL(path.join(__dirname, 'renderer', 'desktop-center.html')).href
+  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
+  window.webContents.on('will-navigate', (event, url) => {
+    if (url !== expectedUrl) event.preventDefault()
+  })
+  window.once('ready-to-show', () => window.show())
+  window.on('closed', () => {
+    if (desktopCenterWindow === window) desktopCenterWindow = undefined
+  })
+  await window.loadFile(path.join(__dirname, 'renderer', 'desktop-center.html'))
 }
 
 function showMainWindow() {
@@ -194,6 +259,7 @@ async function createWindow() {
 async function showFailure(error) {
   writeLog('desktop', `${error.stack ?? error.message}\n`)
   runtimeOrigin = undefined
+  setRuntimeLifecycle({ phase: 'error', error: error.message })
   if (mainWindow === undefined || mainWindow.isDestroyed()) return
   await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
   sendStatus({
@@ -206,6 +272,7 @@ async function showFailure(error) {
 async function showRecoveryStatus({ attempt, delayMs, error }) {
   writeLog('desktop', `scheduling automatic recovery ${attempt} in ${delayMs} ms\n`)
   runtimeOrigin = undefined
+  setRuntimeLifecycle({ phase: 'recovering', attempt, error: error.message })
   if (mainWindow === undefined || mainWindow.isDestroyed()) return
   await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
   sendStatus({
@@ -228,14 +295,14 @@ async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore)
   const channelUrl = runtimeChannelUrl()
   if (channelUrl === '') {
     writeLog('updater', 'runtime update channel is not configured\n')
-    trayController?.setRuntimeUpdateState({
+    setRuntimeUpdateState({
       phase: 'disabled',
       currentVersion: currentRuntime.version,
     })
     return false
   }
   backgroundAbortController = new AbortController()
-  trayController?.setRuntimeUpdateState({
+  setRuntimeUpdateState({
     phase: 'checking',
     currentVersion: currentRuntime.version,
   })
@@ -249,7 +316,7 @@ async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore)
     })
     const update = await updater.prepareLatest(currentRuntime.version, status => {
       writeLog('updater', `${status.phase}: ${status.message}\n`)
-      trayController?.setRuntimeUpdateState({
+      setRuntimeUpdateState({
         phase: status.phase,
         currentVersion: currentRuntime.version,
       })
@@ -257,14 +324,14 @@ async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore)
     if (update !== undefined && !quitting) {
       await runtimeStore.setPending(update)
       writeLog('updater', `staged ${update.version} for the next restart\n`)
-      trayController?.setRuntimeUpdateState({
+      setRuntimeUpdateState({
         phase: 'prepared',
         currentVersion: currentRuntime.version,
         pendingVersion: update.version,
       })
       return true
     }
-    trayController?.setRuntimeUpdateState({
+    setRuntimeUpdateState({
       phase: 'current',
       currentVersion: currentRuntime.version,
       pendingVersion: undefined,
@@ -272,7 +339,7 @@ async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore)
   } catch (error) {
     if (!quitting) {
       writeLog('updater', `background update failed: ${error.stack ?? error.message}\n`)
-      trayController?.setRuntimeUpdateState({
+      setRuntimeUpdateState({
         phase: 'error',
         currentVersion: currentRuntime.version,
       })
@@ -338,6 +405,7 @@ async function startRuntime() {
   if (starting || quitting || mainWindow === undefined || mainWindow.isDestroyed()) return
   starting = true
   runtimeOrigin = undefined
+  setRuntimeLifecycle({ phase: 'starting', error: undefined })
 
   try {
     await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
@@ -354,7 +422,7 @@ async function startRuntime() {
     activeRuntime = runtime
     activeRuntimeStore = runtimeStore
     activeNodeTools = nodeTools
-    trayController?.setRuntimeUpdateState({
+    setRuntimeUpdateState({
       phase: 'idle',
       currentVersion: runtime.version,
       pendingVersion: undefined,
@@ -380,6 +448,7 @@ async function startRuntime() {
     runtimeOrigin = new URL(url).origin
     writeLog('desktop', `loading ${runtimeOrigin}\n`)
     await mainWindow.loadURL(url)
+    setRuntimeLifecycle({ phase: 'running', error: undefined })
     desktopAppUpdater?.start()
     scheduleBackgroundUpdate(
       runtime,
@@ -459,4 +528,28 @@ if (!hasLock) {
 ipcMain.on('runtime:retry', () => {
   runtimeRecovery?.reset()
   void startRuntime()
+})
+
+ipcMain.handle('desktop-center:snapshot', () => desktopSnapshot())
+
+ipcMain.handle('desktop-center:set-preference', async (_event, key, value) => {
+  const patch = validatePreferenceChange(key, value, {
+    loginItemSupported: loginItemSupported(),
+  })
+  return updatePreferences(patch)
+})
+
+ipcMain.handle('desktop-center:check-harness-update', () => checkRuntimeUpdateNow())
+ipcMain.handle('desktop-center:check-desktop-update', () => desktopAppUpdater?.checkNow())
+ipcMain.handle('desktop-center:restart-harness', () => restartRuntime())
+
+ipcMain.handle('desktop-center:open-directory', async (_event, kind) => {
+  const target = kind === 'data'
+    ? app.getPath('userData')
+    : kind === 'logs'
+      ? (logDirectory ?? path.join(app.getPath('userData'), 'logs'))
+      : undefined
+  if (target === undefined) throw new Error('Unknown desktop directory.')
+  const errorMessage = await shell.openPath(target)
+  if (errorMessage !== '') throw new Error(errorMessage)
 })

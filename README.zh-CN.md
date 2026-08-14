@@ -43,6 +43,7 @@ npx @deepseek-ai/dsh web
 | 下次启动切换 | 正常重启时启用暂存版本，并保留安装包内运行时作为回退。 |
 | 桌面外壳更新 | 正式标签构建在后台下载新版桌面外壳，正常退出后安装。 |
 | 有界异常恢复 | Harness 意外退出后按退避策略恢复；连续失败时停止，避免无限重启。 |
+| 桌面控制中心 | 在独立原生窗口统一展示双更新通道、运行状态、偏好设置和本地数据入口。 |
 | 原生安装包 | 提供 Windows、Ubuntu、Intel macOS 和 Apple Silicon macOS 构建。 |
 
 ## 下载与安装
@@ -87,7 +88,13 @@ Harness 成功启动后若意外退出，桌面外壳会分别等待 1 秒、5 �
   </tr>
 </table>
 
-两张图片均由仓库内的截图脚本从真实 Electron 会话和内置 Harness 运行时生成。
+这些图片由仓库内的截图脚本从真实 Electron 页面和内置 Harness 运行时生成。
+
+<p align="center">
+  <img src="docs/images/desktop-control-center.png" alt="展示运行状态、更新、偏好设置和本地数据的 DeepSeek Harness Desktop 控制中心" width="880">
+</p>
+
+从托盘打开“桌面控制中心”，可分别查看桌面外壳与 Harness 版本、触发两条更新检查、重启 Harness、修改桌面偏好，并打开应用数据或日志目录。
 
 ## 无感更新行为
 

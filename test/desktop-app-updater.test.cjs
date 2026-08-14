@@ -76,10 +76,12 @@ test('a downloaded desktop update is staged without interrupting the app', () =>
 
 test('desktop update errors are isolated and retried later', () => {
   const harness = createHarness()
+  harness.updater.emit('update-available', { version: '0.2.0' })
 
   harness.updater.emit('error', new Error('offline'))
 
   assert.equal(harness.states.at(-1).phase, 'error')
+  assert.equal(harness.states.at(-1).availableVersion, undefined)
   assert.equal(harness.errors[0].message, 'offline')
   assert.equal(harness.timers.size, 1)
 })

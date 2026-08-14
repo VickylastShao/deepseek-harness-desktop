@@ -3,8 +3,9 @@
 const path = require('node:path')
 const os = require('node:os')
 const { mkdir, mkdtemp, rm, writeFile } = require('node:fs/promises')
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const { HarnessProcess } = require('../src/harness-process.cjs')
+const { createDesktopCenterWindowOptions } = require('../src/window-policy.cjs')
 
 const projectRoot = path.resolve(__dirname, '..')
 const outputDir = path.join(projectRoot, 'docs', 'images')
@@ -73,6 +74,19 @@ async function main() {
     cwd: projectRoot,
     dshHome: path.join(temporaryHome, 'dsh-home'),
   })
+  ipcMain.handle('desktop-center:snapshot', () => ({
+    desktop: { version: app.getVersion(), updates: { enabled: true, phase: 'current' } },
+    harness: {
+      lifecycle: { phase: 'running' },
+      updates: { phase: 'current', currentVersion: '0.1.0-rc.6' },
+    },
+    preferences: { closeToTray: true, notifications: true, openAtLogin: false },
+    capabilities: { loginItem: true },
+    paths: {
+      data: path.join(temporaryHome, 'DeepSeek Harness Desktop'),
+      logs: path.join(temporaryHome, 'DeepSeek Harness Desktop', 'logs'),
+    },
+  }))
 
   try {
     await load(window, path.join(projectRoot, 'src', 'renderer', 'loading.html'))
@@ -85,11 +99,26 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 2_000))
     await capture(window, 'desktop-web-ui.png')
     console.log('Captured docs/images/desktop-web-ui.png')
+
+    const center = new BrowserWindow({
+      ...createDesktopCenterWindowOptions(path.join(projectRoot, 'src')),
+      ...screenshotSize,
+      show: false,
+    })
+    try {
+      await load(center, path.join(projectRoot, 'src', 'renderer', 'desktop-center.html'))
+      await new Promise(resolve => setTimeout(resolve, 300))
+      await capture(center, 'desktop-control-center.png')
+      console.log('Captured docs/images/desktop-control-center.png')
+    } finally {
+      center.destroy()
+    }
   } finally {
     console.log('Stopping the temporary Harness process...')
     await harness.stop()
     console.log('Harness stopped; cleaning up the temporary profile...')
     window.destroy()
+    ipcMain.removeHandler('desktop-center:snapshot')
     await rm(temporaryHome, { recursive: true, force: true })
     app.quit()
   }

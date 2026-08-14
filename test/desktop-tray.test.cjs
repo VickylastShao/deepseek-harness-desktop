@@ -73,6 +73,7 @@ function createHarness(options = {}) {
   let restartCount = 0
   let updateCheckCount = 0
   let desktopUpdateCheckCount = 0
+  let desktopCenterOpenCount = 0
   let quitCount = 0
   const tray = new FakeTray()
   const window = new FakeWindow()
@@ -101,6 +102,9 @@ function createHarness(options = {}) {
     },
     onCheckDesktopUpdates: async () => {
       desktopUpdateCheckCount += 1
+    },
+    onOpenDesktopCenter: () => {
+      desktopCenterOpenCount += 1
     },
     onPreferenceChange: async patch => ({
       closeToTray: true,
@@ -131,6 +135,7 @@ function createHarness(options = {}) {
     tray,
     updateCheckCount: () => updateCheckCount,
     desktopUpdateCheckCount: () => desktopUpdateCheckCount,
+    desktopCenterOpenCount: () => desktopCenterOpenCount,
     window,
   }
 }
@@ -221,10 +226,12 @@ test('tray menu exposes restart, logs, and explicit quit actions', async () => {
   const harness = createHarness()
   const menu = harness.menuTemplate()
 
+  menu.find(item => item.id === 'desktop-center').click()
   await menu.find(item => item.id === 'restart').click()
   await menu.find(item => item.id === 'logs').click()
   menu.find(item => item.id === 'quit').click()
 
+  assert.equal(harness.desktopCenterOpenCount(), 1)
   assert.equal(harness.restartCount(), 1)
   assert.deepEqual(harness.openedPaths, ['/application/logs'])
   assert.equal(harness.quitCount(), 1)

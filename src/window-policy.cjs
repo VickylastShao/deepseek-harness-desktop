@@ -23,6 +23,25 @@ function createWindowOptions(baseDir) {
   }
 }
 
+function createDesktopCenterWindowOptions(baseDir) {
+  return {
+    width: 920,
+    height: 760,
+    minWidth: 620,
+    minHeight: 560,
+    show: false,
+    backgroundColor: '#f4f7fb',
+    title: 'DeepSeek Harness Desktop',
+    webPreferences: {
+      preload: path.join(baseDir, 'desktop-center-preload.cjs'),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: true,
+      webSecurity: true,
+    },
+  }
+}
+
 function isAllowedRuntimeUrl(value, runtimeOrigin) {
   try {
     const url = new URL(value)
@@ -44,6 +63,7 @@ function isSafeExternalUrl(value) {
 }
 
 module.exports = {
+  createDesktopCenterWindowOptions,
   createWindowOptions,
   isAllowedRuntimeUrl,
   isSafeExternalUrl,

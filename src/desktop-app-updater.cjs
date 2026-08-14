@@ -101,7 +101,7 @@ class DesktopAppUpdater {
 
   handleError(error) {
     const normalized = error instanceof Error ? error : new Error(String(error))
-    this.publish({ phase: 'error', progress: undefined })
+    this.publish({ phase: 'error', availableVersion: undefined, progress: undefined })
     this.onError(normalized)
     this.schedule(this.intervalMs)
   }

@@ -3,10 +3,20 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 const {
+  createDesktopCenterWindowOptions,
   createWindowOptions,
   isAllowedRuntimeUrl,
   isSafeExternalUrl,
 } = require('../src/window-policy.cjs')
+
+test('desktop control center uses its own sandboxed preload', () => {
+  const options = createDesktopCenterWindowOptions('/application')
+  assert.match(options.webPreferences.preload, /desktop-center-preload\.cjs$/u)
+  assert.equal(options.webPreferences.nodeIntegration, false)
+  assert.equal(options.webPreferences.contextIsolation, true)
+  assert.equal(options.webPreferences.sandbox, true)
+  assert.equal(options.webPreferences.webSecurity, true)
+})
 
 test('renderer has no Node integration and keeps Chromium isolation enabled', () => {
   const options = createWindowOptions('/application')

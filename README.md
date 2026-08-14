@@ -57,6 +57,7 @@ that setup into a conventional application:
 | Safe next-launch activation | Switches to the staged runtime on the next normal start, with the bundled runtime kept as a fallback. |
 | Desktop app updates | Formal tagged builds download newer shell releases in the background and install them after a normal quit. |
 | Bounded crash recovery | Restarts Harness after an unexpected exit with backoff, then stops after repeated failures instead of looping forever. |
+| Desktop control center | Shows both update channels, runtime health, preferences, and local-data shortcuts in one native window. |
 | Native installers | Produces Windows, Ubuntu, Intel macOS, and Apple Silicon macOS packages. |
 
 ## Install
@@ -117,9 +118,17 @@ clears that circuit breaker.
   </tr>
 </table>
 
-Both images are captured from a real local Electron session running the bundled
+These screenshots are captured from the real local Electron pages and bundled
 Harness runtime. The repository includes the capture script used to regenerate
 them.
+
+<p align="center">
+  <img src="docs/images/desktop-control-center.png" alt="DeepSeek Harness Desktop control center showing runtime health, updates, preferences, and local data" width="880">
+</p>
+
+Open **Desktop Control Center** from the tray to inspect the desktop and Harness
+versions independently, run either update check, restart Harness, change desktop
+preferences, or open the application-data and log directories.
 
 ## Updates that do not interrupt your session
 

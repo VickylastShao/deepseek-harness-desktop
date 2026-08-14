@@ -6,6 +6,7 @@ const ENGLISH_LABELS = Object.freeze({
   checkingUpdates: 'Checking for Harness updates…',
   checkingDesktopUpdates: 'Checking for desktop updates…',
   closeToTray: 'Keep Running When Window Closes',
+  desktopCenter: 'Desktop Control Center',
   logs: 'Open Log Folder',
   notifications: 'Desktop Notifications',
   open: 'Open DeepSeek Harness',
@@ -28,6 +29,7 @@ const CHINESE_LABELS = Object.freeze({
   checkingUpdates: '正在检查 Harness 更新……',
   checkingDesktopUpdates: '正在检查桌面应用更新……',
   closeToTray: '关闭窗口后继续运行',
+  desktopCenter: '桌面控制中心',
   logs: '打开日志目录',
   notifications: '桌面通知',
   open: '打开 DeepSeek Harness',
@@ -77,6 +79,7 @@ class DesktopTrayController {
     this.onRestart = options.onRestart
     this.onCheckUpdates = options.onCheckUpdates ?? (() => {})
     this.onCheckDesktopUpdates = options.onCheckDesktopUpdates ?? (() => {})
+    this.onOpenDesktopCenter = options.onOpenDesktopCenter ?? (() => {})
     this.onPreferenceChange = options.onPreferenceChange ?? (async () => this.preferences)
     this.openPath = options.openPath
     this.trayIcon = options.trayIcon
@@ -121,6 +124,7 @@ class DesktopTrayController {
     const checking = phase === 'checking' || phase === 'downloading'
     this.tray.setContextMenu(this.buildMenu([
       { id: 'open', label: this.labels.open, click: () => this.showWindow() },
+      { id: 'desktop-center', label: this.labels.desktopCenter, click: () => this.onOpenDesktopCenter() },
       { type: 'separator' },
       ...(statusLabel === undefined ? [] : [{ id: 'runtime-status', label: statusLabel, enabled: false }]),
       {
