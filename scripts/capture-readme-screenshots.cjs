@@ -11,7 +11,7 @@ const packageManifest = require('../package.json')
 const projectRoot = path.resolve(__dirname, '..')
 const outputDir = path.join(projectRoot, 'docs', 'images')
 const screenshotSize = { width: 1440, height: 900 }
-const centerScreenshotSize = { width: 1440, height: 1200 }
+const centerScreenshotSize = { width: 1440, height: 700 }
 
 app.disableHardwareAcceleration()
 
@@ -124,6 +124,10 @@ async function main() {
     try {
       await load(center, path.join(projectRoot, 'src', 'renderer', 'desktop-center.html'))
       await new Promise(resolve => setTimeout(resolve, 300))
+      await center.webContents.executeJavaScript("document.documentElement.style.overflow = 'hidden'")
+      await capture(center, 'desktop-control-center-hero.png')
+      console.log('Captured docs/images/desktop-control-center-hero.png')
+      await center.webContents.executeJavaScript("document.documentElement.style.overflow = ''")
       await fitDocumentHeight(center)
       await new Promise(resolve => setTimeout(resolve, 100))
       await capture(center, 'desktop-control-center.png')

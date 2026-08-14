@@ -1,7 +1,7 @@
 # Release signing setup
 
 The repository is signing-ready, but signing credentials are intentionally not
-stored in source control. Release `v0.1.5` and earlier artifacts are unsigned.
+stored in source control. Release `v0.2.1` and earlier artifacts are unsigned.
 A future version tag will fail during the signing preflight until both macOS and
 Windows signing are configured.
 
