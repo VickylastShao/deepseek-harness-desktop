@@ -172,7 +172,7 @@ async function installWithNpm(runtimeExecutable, npmCliPath, cacheDir, stageDir,
   const common = {
     cwd: stageDir,
     env: runtimePathEnvironment(runtimeExecutable),
-    timeoutMs: 10 * 60_000,
+    timeoutMs: 20 * 60_000,
     detached: process.platform !== 'win32',
     signal,
   }
