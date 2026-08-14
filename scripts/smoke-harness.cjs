@@ -6,13 +6,23 @@ const path = require('node:path')
 const { HarnessProcess } = require('../src/harness-process.cjs')
 const { RuntimeUpdater } = require('../src/runtime-updater.cjs')
 
+function resolveRuntimeRoot(projectRoot, base, override) {
+  return override === undefined
+    ? path.join(base, 'runtime')
+    : path.resolve(projectRoot, override)
+}
+
 async function main() {
   const projectRoot = path.resolve(__dirname, '..')
   const nodePackageDir = path.join(projectRoot, 'node_modules', 'node')
   const nodeExecutable = path.join(nodePackageDir, 'bin', process.platform === 'win32' ? 'node.exe' : 'node')
   const nodeManifest = require(path.join(nodePackageDir, 'package.json'))
   const base = await mkdtemp(path.join(os.tmpdir(), 'dsh-desktop-e2e-'))
-  const runtimeRoot = process.env.DSH_RUNTIME_TEST_ROOT ?? path.join(base, 'runtime')
+  const runtimeRoot = resolveRuntimeRoot(
+    projectRoot,
+    base,
+    process.env.DSH_RUNTIME_TEST_ROOT,
+  )
   const updater = new RuntimeUpdater({
     rootDir: runtimeRoot,
     runtimeExecutable: nodeExecutable,
@@ -50,7 +60,11 @@ async function main() {
   }
 }
 
-main().catch(error => {
-  console.error(error)
-  process.exitCode = 1
-})
+if (require.main === module) {
+  main().catch(error => {
+    console.error(error)
+    process.exitCode = 1
+  })
+}
+
+module.exports = { resolveRuntimeRoot }
