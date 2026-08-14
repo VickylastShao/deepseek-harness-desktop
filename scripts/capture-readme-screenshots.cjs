@@ -39,6 +39,21 @@ async function capture(window, filename) {
   await writeFile(path.join(outputDir, filename), image.toPNG())
 }
 
+async function continuePastPreviewNotice(window) {
+  const continued = await window.webContents.executeJavaScript(`
+    (() => {
+      const button = [...document.querySelectorAll('button')]
+        .find((candidate) => candidate.textContent.trim() === 'Continue')
+      if (!button) return false
+      button.click()
+      return true
+    })()
+  `)
+  if (!continued) {
+    throw new Error('Could not find the upstream Harness preview notice Continue button')
+  }
+}
+
 async function fitDocumentHeight(window, maximumHeight = 1_800) {
   const documentHeight = await window.webContents.executeJavaScript(
     'Math.ceil(Math.max(document.body.scrollHeight, document.documentElement.scrollHeight))',
@@ -115,6 +130,11 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 2_000))
     await capture(window, 'desktop-web-ui.png')
     console.log('Captured docs/images/desktop-web-ui.png')
+
+    await continuePastPreviewNotice(window)
+    await new Promise(resolve => setTimeout(resolve, 1_000))
+    await capture(window, 'deepseek-harness-main.png')
+    console.log('Captured docs/images/deepseek-harness-main.png')
 
     const center = new BrowserWindow({
       ...createDesktopCenterWindowOptions(path.join(projectRoot, 'src')),

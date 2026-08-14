@@ -16,13 +16,14 @@
 
 <p align="center">
   <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2"><strong>下载 v0.2.2 预发布版</strong></a>
+  · <a href="https://vickylastshao.github.io/deepseek-harness-desktop/">官方网站</a>
   · <a href="#开始使用">开始使用</a>
   · <a href="#问题排查与支持">问题支持</a>
   · <a href="README.md">English</a>
 </p>
 
 <p align="center">
-  <img src="docs/images/desktop-control-center-hero.png" alt="DeepSeek Harness Desktop 控制中心，展示运行状态、更新、诊断和偏好设置" width="880">
+  <img src="docs/images/deepseek-harness-main.png" alt="DeepSeek Harness Desktop 中运行的 Harness 主会话页面" width="880">
 </p>
 
 > [!IMPORTANT]
@@ -102,15 +103,15 @@ fork、不注入或重写上游 Web UI，只把启动、进程管理、更新和
 <table>
   <tr>
     <td align="center"><strong>桌面启动器</strong></td>
-    <td align="center"><strong>上游 Harness 首次运行提示</strong></td>
+    <td align="center"><strong>桌面控制中心</strong></td>
   </tr>
   <tr>
     <td><img src="docs/images/desktop-startup.png" alt="DeepSeek Harness Desktop 启动界面"></td>
-    <td><img src="docs/images/desktop-web-ui.png" alt="桌面应用中的上游 DeepSeek Harness 开发者预览提示"></td>
+    <td><img src="docs/images/desktop-control-center-hero.png" alt="DeepSeek Harness Desktop 控制中心"></td>
   </tr>
 </table>
 
-页面顶部的控制中心会分别展示桌面外壳与 Harness 版本、更新状态、进程健康、
+控制中心会分别展示桌面外壳与 Harness 版本、更新状态、进程健康、
 任务事件连接、异常恢复、偏好设置、诊断和本地数据入口。全部截图均由
 `npm run capture:screenshots` 从真实 Electron 页面与内置 Harness 运行时生成。
 

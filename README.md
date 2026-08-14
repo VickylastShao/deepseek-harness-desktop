@@ -16,13 +16,14 @@
 
 <p align="center">
   <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2"><strong>Download v0.2.2 prerelease</strong></a>
+  · <a href="https://vickylastshao.github.io/deepseek-harness-desktop/">Website</a>
   · <a href="#get-started">Get started</a>
   · <a href="#troubleshooting-and-support">Support</a>
   · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 <p align="center">
-  <img src="docs/images/desktop-control-center-hero.png" alt="DeepSeek Harness Desktop control center showing runtime health, updates, diagnostics, and preferences" width="880">
+  <img src="docs/images/deepseek-harness-main.png" alt="DeepSeek Harness main session page running inside DeepSeek Harness Desktop" width="880">
 </p>
 
 > [!IMPORTANT]
@@ -111,15 +112,15 @@ for the authoritative product and plugin behavior.
 <table>
   <tr>
     <td align="center"><strong>Desktop startup</strong></td>
-    <td align="center"><strong>Upstream Harness first-run notice</strong></td>
+    <td align="center"><strong>Desktop control center</strong></td>
   </tr>
   <tr>
     <td><img src="docs/images/desktop-startup.png" alt="DeepSeek Harness Desktop startup screen"></td>
-    <td><img src="docs/images/desktop-web-ui.png" alt="Upstream DeepSeek Harness developer-preview notice inside the desktop app"></td>
+    <td><img src="docs/images/desktop-control-center-hero.png" alt="DeepSeek Harness Desktop control center"></td>
   </tr>
 </table>
 
-The control center shown at the top separates desktop and Harness versions,
+The control center separates desktop and Harness versions,
 update state, process health, task-event connectivity, recovery state,
 preferences, diagnostics, and local-data shortcuts. All screenshots are
 captured from the real Electron pages and bundled Harness runtime with
