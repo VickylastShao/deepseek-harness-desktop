@@ -1,0 +1,15 @@
+{
+  "name": "deepseek-harness-desktop",
+  "version": "0.1.0",
+  "description": "Cross-platform desktop launcher for DeepSeek Harness",
+  "main": "src/main.cjs",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "electron": "43.4.0"
+  }
+}
