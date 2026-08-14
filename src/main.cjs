@@ -32,6 +32,7 @@ const { restartManagedRuntime } = require('./runtime-control.cjs')
 const { RuntimeRecoveryController } = require('./runtime-recovery.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
+const { TaskCompletionMonitor } = require('./task-completion-monitor.cjs')
 const {
   createDesktopCenterWindowOptions,
   createWindowOptions,
@@ -66,6 +67,8 @@ let desktopAppUpdater
 let desktopUpdateState = { enabled: false, phase: 'disabled' }
 let runtimeUpdateState = { phase: 'idle' }
 let runtimeLifecycle = { phase: 'starting' }
+let taskCompletionMonitor
+let taskMonitorState = { phase: 'stopped', runningSessions: 0 }
 
 function bundledNodeTools() {
   const nodePackageDir = app.isPackaged
@@ -142,6 +145,7 @@ function desktopSnapshot() {
     desktopUpdateState,
     runtimeLifecycle,
     runtimeUpdateState,
+    taskMonitorState,
     preferences,
     loginItemSupported: loginItemSupported(),
     dataPath: app.getPath('userData'),
@@ -170,6 +174,40 @@ function setDesktopUpdateState(patch) {
 function setRuntimeLifecycle(patch) {
   runtimeLifecycle = { ...runtimeLifecycle, ...patch }
   broadcastDesktopSnapshot()
+}
+
+function setTaskMonitorState(state) {
+  taskMonitorState = { ...state }
+  broadcastDesktopSnapshot()
+}
+
+function stopTaskCompletionMonitor() {
+  taskCompletionMonitor?.stop()
+  taskCompletionMonitor = undefined
+}
+
+function startTaskCompletionMonitor(origin) {
+  stopTaskCompletionMonitor()
+  try {
+    taskCompletionMonitor = new TaskCompletionMonitor({
+      origin,
+      onCompleted: ({ sessionId }) => {
+        writeLog('task-monitor', `session ${sessionId} completed\n`)
+        trayController?.showTaskCompletedNotification(sessionId)
+      },
+      onError: error => writeLog('task-monitor', `${error.message}\n`),
+      onState: state => setTaskMonitorState(state),
+    })
+    taskCompletionMonitor.start()
+  } catch (error) {
+    const normalized = error instanceof Error ? error : new Error(String(error))
+    writeLog('task-monitor', `${normalized.stack ?? normalized.message}\n`)
+    setTaskMonitorState({
+      phase: 'error',
+      runningSessions: 0,
+      error: normalized.message,
+    })
+  }
 }
 
 function desktopUpdatesEnabled() {
@@ -397,6 +435,7 @@ function scheduleBackgroundUpdate(currentRuntime, nodeTools, runtimeStore, delay
 
 async function handleUnexpectedExit(result) {
   if (quitting) return
+  stopTaskCompletionMonitor()
   harnessProcess = undefined
   const reason = `Harness unexpectedly exited (${result.code ?? result.signal ?? 'unknown'}).`
   const error = new Error(result.detail === '' ? reason : `${reason}\n${result.detail}`)
@@ -452,6 +491,7 @@ async function startRuntime() {
     writeLog('desktop', `loading ${runtimeOrigin}\n`)
     await mainWindow.loadURL(url)
     setRuntimeLifecycle({ phase: 'running', error: undefined })
+    startTaskCompletionMonitor(runtimeOrigin)
     desktopAppUpdater?.start()
     scheduleBackgroundUpdate(
       runtime,
@@ -472,6 +512,7 @@ async function startRuntime() {
 async function restartRuntime() {
   if (restarting) return
   runtimeRecovery?.reset()
+  stopTaskCompletionMonitor()
   restarting = true
   try {
     await restartManagedRuntime({
@@ -517,6 +558,7 @@ if (!hasLock) {
     backgroundUpdateTimer = undefined
     backgroundAbortController?.abort(new Error('Application is shutting down.'))
     runtimeRecovery?.cancel()
+    stopTaskCompletionMonitor()
     desktopAppUpdater?.stop()
     if (shutdownStarted || (harnessProcess === undefined && backgroundUpdatePromise === undefined)) return
     event.preventDefault()

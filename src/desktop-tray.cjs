@@ -20,6 +20,8 @@ const ENGLISH_LABELS = Object.freeze({
   desktopVersion: version => `Desktop ${version}`,
   stillRunningBody: 'DeepSeek Harness is still running in the system tray.',
   stillRunningTitle: 'DeepSeek Harness Desktop',
+  taskCompletedBody: session => `Harness task ${session} finished. Click to reopen the app.`,
+  taskCompletedTitle: 'Task completed',
   tooltip: 'DeepSeek Harness Desktop',
 })
 
@@ -43,6 +45,8 @@ const CHINESE_LABELS = Object.freeze({
   desktopVersion: version => `桌面应用 ${version}`,
   stillRunningBody: 'DeepSeek Harness 仍在系统托盘中运行。',
   stillRunningTitle: 'DeepSeek Harness Desktop',
+  taskCompletedBody: session => `Harness 任务 ${session} 已完成，点击重新打开应用。`,
+  taskCompletedTitle: '任务已完成',
   tooltip: 'DeepSeek Harness Desktop',
 })
 
@@ -226,6 +230,26 @@ class DesktopTrayController {
       }).show()
     } catch (error) {
       this.onError(error instanceof Error ? error : new Error(String(error)))
+    }
+  }
+
+  showTaskCompletedNotification(sessionId) {
+    const window = this.window
+    if (!this.preferences.notifications
+      || !this.isNotificationSupported()
+      || (window !== undefined && !window.isDestroyed() && window.isVisible() && !window.isMinimized())) return false
+    try {
+      const session = sessionId.length > 12 ? `${sessionId.slice(0, 12)}…` : sessionId
+      const notification = this.createNotification({
+        title: this.labels.taskCompletedTitle,
+        body: this.labels.taskCompletedBody(session),
+      })
+      notification.on?.('click', () => this.showWindow())
+      notification.show()
+      return true
+    } catch (error) {
+      this.onError(error instanceof Error ? error : new Error(String(error)))
+      return false
     }
   }
 

@@ -36,6 +36,10 @@ class FakeWindow extends EventEmitter {
     return this.minimized
   }
 
+  isVisible() {
+    return this.shown
+  }
+
   restore() {
     this.minimized = false
   }
@@ -202,6 +206,36 @@ test('desktop notifications can be disabled', () => {
   harness.window.emit('close', closeEvent)
 
   assert.equal(harness.window.hidden, true)
+  assert.equal(harness.notifications.length, 0)
+})
+
+test('task completion notifications appear only while hidden and restore the window on click', () => {
+  let created
+  const harness = createHarness({
+    createNotification: notificationOptions => {
+      created = new EventEmitter()
+      created.show = () => harness.notifications.push(notificationOptions)
+      return created
+    },
+  })
+
+  assert.equal(harness.controller.showTaskCompletedNotification('session-abcdef123456'), false)
+  harness.window.hide()
+  assert.equal(harness.controller.showTaskCompletedNotification('session-abcdef123456'), true)
+  assert.equal(harness.notifications.length, 1)
+  assert.equal(harness.notifications[0].title, 'Task completed')
+  assert.match(harness.notifications[0].body, /session-abcd/u)
+
+  created.emit('click')
+  assert.equal(harness.window.shown, true)
+  assert.equal(harness.window.focused, true)
+})
+
+test('task completion notifications respect the desktop notification preference', () => {
+  const harness = createHarness({ preferences: { notifications: false } })
+  harness.window.hide()
+
+  assert.equal(harness.controller.showTaskCompletedNotification('session-1'), false)
   assert.equal(harness.notifications.length, 0)
 })
 
