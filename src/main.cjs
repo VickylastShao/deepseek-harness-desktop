@@ -43,6 +43,7 @@ const {
 } = require('./window-policy.cjs')
 
 suppressDefaultApplicationMenu(Menu)
+if (process.platform === 'win32') app.setAppUserModelId('ai.deepseek.harness.desktop')
 
 let mainWindow
 let desktopCenterWindow
@@ -117,7 +118,10 @@ function initializeTray(window) {
   trayController = new DesktopTrayController({
     createTray: icon => new Tray(icon),
     buildMenu: template => Menu.buildFromTemplate(template),
-    createNotification: options => new Notification(options),
+    createNotification: options => new Notification({
+      ...options,
+      icon: path.join(app.getAppPath(), 'assets', 'app-icon.png'),
+    }),
     isNotificationSupported: () => Notification.isSupported(),
     isQuitting: () => quitting,
     labels: trayLabels(app.getLocale()),

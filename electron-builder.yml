@@ -23,6 +23,7 @@ extraResources:
       - 'runtime-seed/**/*'
 artifactName: DeepSeek-Harness-Desktop-${version}-${os}-${arch}.${ext}
 win:
+  icon: assets/app-icon.svg
   target:
     - target: nsis
       arch:
@@ -33,6 +34,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
 linux:
+  icon: assets/app-icon.svg
   executableName: deepseek-harness-desktop
   category: Development
   maintainer: VickylastShao <22924324+VickylastShao@users.noreply.github.com>
@@ -45,6 +47,7 @@ linux:
       arch:
         - x64
 mac:
+  icon: assets/app-icon.svg
   category: public.app-category.developer-tools
   hardenedRuntime: true
   notarize: true

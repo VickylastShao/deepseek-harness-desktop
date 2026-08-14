@@ -7,8 +7,9 @@ MIT License:
 - Project: https://github.com/deepseek-ai/deepseek-harness
 - Copyright (c) 2026 DeepSeek
 
-The system tray artwork is derived from the DeepSeek Harness favicon in that
-project and is redistributed under the same MIT License.
+The application, window, and system tray artwork are derived from the DeepSeek
+Harness favicon in that project and are redistributed under the same MIT
+License.
 
 The desktop control center includes Manrope through
 `@fontsource-variable/manrope` 5.3.0. Copyright 2019 The Manrope Project
