@@ -376,7 +376,7 @@ jobs:
             echo "See the repository commit history for this prerelease." >> release-input/generated-changes.md
           fi
       - name: Generate direct-download release notes
-        run: node scripts/generate-release-notes.cjs "${GITHUB_REPOSITORY}" "${RELEASE_TAG}" release-input/generated-changes.md release-input/release/RELEASE_NOTES.md
+        run: node scripts/generate-release-notes.cjs "${GITHUB_REPOSITORY}" "${RELEASE_TAG}" release-input/generated-changes.md release-input/release/RELEASE_NOTES.md --unsigned-prerelease
       - name: Publish unsigned prerelease installers
         shell: bash
         env:
