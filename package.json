@@ -22,6 +22,7 @@
     "test": "node --test",
     "smoke:update": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-update.cjs",
     "smoke:harness": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-harness.cjs",
+    "capture:screenshots": "electron scripts/capture-readme-screenshots.cjs",
     "prepare:seed": "node scripts/prepare-runtime-seed.cjs",
     "package:runtime": "node scripts/package-runtime.cjs",
     "verify:packaged": "node scripts/verify-packaged-runtime.cjs",
