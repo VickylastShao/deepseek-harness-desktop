@@ -62,20 +62,31 @@ that setup into a conventional application:
 
 ## Install
 
-Download the package for your platform from the
-[latest release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest):
+The current release is **v0.2.1**. Use the recommended package for a normal
+installation, or open the [latest release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest)
+for release notes and every asset.
 
-| Platform | Packages |
-| --- | --- |
-| Windows x64 | NSIS installer (`.exe`) |
-| Ubuntu x64 | Debian package (`.deb`) or portable AppImage |
-| macOS Intel | `.dmg` or `.zip` |
-| macOS Apple Silicon | ARM64 `.dmg` or `.zip` |
+| Platform | Recommended | Alternative | SHA-256 |
+| --- | --- | --- | --- |
+| Windows 10/11 x64 | [Setup EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-win-x64.exe) | — | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-win32-x64.txt) |
+| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-linux-x86_64.AppImage) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-linux-x64.txt) |
+| macOS Apple Silicon | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-arm64.zip) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-darwin-arm64.txt) |
+| macOS Intel | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-x64.zip) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-darwin-x64.txt) |
 
-Release `v0.1.5` and earlier builds are unsigned. Windows SmartScreen and macOS
+Release `v0.2.1` and earlier builds are unsigned. Windows SmartScreen and macOS
 Gatekeeper may show an unknown-publisher warning. The repository now enforces a
 signing preflight for future tagged releases; see the
 [release signing setup](docs/CODE_SIGNING.md).
+
+To verify a download, compare it with the checksum file for the same platform:
+
+```powershell
+Get-FileHash .\DeepSeek-Harness-Desktop-0.2.1-win-x64.exe -Algorithm SHA256
+```
+
+```bash
+sha256sum DeepSeek-Harness-Desktop-0.2.1-linux-amd64.deb
+```
 
 ## First launch
 
@@ -99,6 +110,12 @@ The tray **Preferences** submenu persists close-to-tray and notification choices
 Windows and macOS also expose **Start at Login** through the operating system's
 native login-item integration. Defaults remain conservative: close-to-tray and
 notifications are enabled; login startup is disabled.
+
+When the window is hidden or minimized, the desktop shell reports a Harness
+task that changed from running to finished with a native notification. Clicking
+the notification restores the existing window. The same **Desktop
+Notifications** preference controls this behavior. A reconnect never invents a
+completion event, and the shell does not inspect or modify the Harness Web UI.
 
 If Harness exits unexpectedly after startup, the desktop shell retries after 1,
 5, and 15 seconds. A fourth failure inside five minutes opens the failure screen
@@ -127,8 +144,14 @@ them.
 </p>
 
 Open **Desktop Control Center** from the tray to inspect the desktop and Harness
-versions independently, run either update check, restart Harness, change desktop
-preferences, or open the application-data and log directories.
+versions independently, endpoint and process state, task-event connection,
+recovery state, and both update channels. It can also restart Harness, change
+desktop preferences, and open the application-data and log directories.
+
+**Export diagnostic bundle** creates a bounded, pattern-redacted `.tar.gz`
+archive with a structured desktop-state report, the end of the desktop log, and
+a contents notice. It copies no Harness session, credential-store, or workspace
+files. Review all three files before attaching the archive to a public issue.
 
 ## Updates that do not interrupt your session
 
@@ -173,6 +196,22 @@ manual builds keep this channel disabled.
 See the project's [privacy policy](PRIVACY.md) and
 [code signing policy](CODE_SIGNING_POLICY.md) for the release and network-data
 boundaries.
+
+## Troubleshooting
+
+- **Installation takes time:** the installer expands Electron, the bundled
+  platform-native Node.js runtime, and the verified Harness seed up front. This
+  keeps the first application launch independent of a runtime download or
+  compilation step.
+- **The tray icon is not visible:** check the hidden or overflow area of the
+  Windows taskbar, GNOME/KDE panel, or macOS menu bar. Launching the app again
+  restores the existing window instead of starting a second process.
+- **No task-completion notification appears:** allow notifications for the app,
+  keep **Desktop Notifications** enabled, and hide or minimize the main window.
+  The app intentionally stays silent while its main window is visible.
+- **Harness does not start:** open **Desktop Control Center**, export a
+  diagnostic bundle, review its three files, and attach it to a GitHub issue
+  with the steps that led to the failure.
 
 ## Development
 

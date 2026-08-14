@@ -48,16 +48,26 @@ npx @deepseek-ai/dsh web
 
 ## 下载与安装
 
-从 [最新版本](https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest)下载对应平台的安装包：
+当前版本为 **v0.2.1**。常规安装建议直接下载下表中的推荐安装包；完整更新说明和全部文件见[最新版本](https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest)。
 
-| 平台 | 安装包 |
-| --- | --- |
-| Windows x64 | NSIS `.exe` |
-| Ubuntu x64 | `.deb` 或 AppImage |
-| Intel macOS | `.dmg` 或 `.zip` |
-| Apple Silicon macOS | ARM64 `.dmg` 或 `.zip` |
+| 平台 | 推荐安装包 | 备选格式 | SHA-256 |
+| --- | --- | --- | --- |
+| Windows 10/11 x64 | [安装程序 EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-win-x64.exe) | — | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-win32-x64.txt) |
+| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-linux-x86_64.AppImage) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-linux-x64.txt) |
+| Apple Silicon macOS | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-arm64.zip) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-darwin-arm64.txt) |
+| Intel macOS | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-x64.zip) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-darwin-x64.txt) |
 
-`v0.1.5` 及更早版本尚未签名，Windows SmartScreen 和 macOS Gatekeeper 可能显示“未知发布者”提示。仓库现已为后续正式标签版本增加强制签名前置检查，配置方法见[发布签名指南](docs/CODE_SIGNING.md)。
+`v0.2.1` 及更早版本尚未签名，Windows SmartScreen 和 macOS Gatekeeper 可能显示“未知发布者”提示。仓库现已为后续正式标签版本增加强制签名前置检查，配置方法见[发布签名指南](docs/CODE_SIGNING.md)。
+
+下载后可使用对应平台的校验文件核对 SHA-256：
+
+```powershell
+Get-FileHash .\DeepSeek-Harness-Desktop-0.2.1-win-x64.exe -Algorithm SHA256
+```
+
+```bash
+sha256sum DeepSeek-Harness-Desktop-0.2.1-linux-amd64.deb
+```
 
 ## 首次使用
 
@@ -72,6 +82,8 @@ npx @deepseek-ai/dsh web
 关闭主窗口只会隐藏窗口，不会停止正在执行的 Harness 会话。第一次关闭时，系统会提示应用仍在托盘运行。托盘菜单会显示当前 Harness 版本及等待重启启用的版本，并支持立即检查更新、恢复窗口、重启 Harness、打开日志目录和彻底退出；再次启动桌面应用会恢复已有窗口，不会创建第二个 Harness 进程。
 
 托盘中的“偏好设置”会持久化“关闭窗口后继续运行”和“桌面通知”选项；Windows 与 macOS 还可使用系统原生登录项启用“开机启动”。默认保持关闭窗口后继续运行、开启通知、不开机启动。
+
+主窗口隐藏或最小化时，如果桌面外壳观测到 Harness 任务从“运行中”变为“已结束”，会发送系统原生通知；点击通知可恢复现有窗口。该行为由同一个“桌面通知”偏好控制。事件流重连不会凭空生成完成通知，桌面外壳也不会读取或修改 Harness Web UI 的页面内容。
 
 Harness 成功启动后若意外退出，桌面外壳会分别等待 1 秒、5 秒和 15 秒后自动恢复；5 分钟内第 4 次失败将进入错误页，不会无限重启。用户手动重试或从托盘重启会清除该熔断状态。
 
@@ -94,7 +106,9 @@ Harness 成功启动后若意外退出，桌面外壳会分别等待 1 秒、5 �
   <img src="docs/images/desktop-control-center.png" alt="展示运行状态、更新、偏好设置和本地数据的 DeepSeek Harness Desktop 控制中心" width="880">
 </p>
 
-从托盘打开“桌面控制中心”，可分别查看桌面外壳与 Harness 版本、触发两条更新检查、重启 Harness、修改桌面偏好，并打开应用数据或日志目录。
+从托盘打开“桌面控制中心”，可分别查看桌面外壳与 Harness 版本、访问端点、进程状态、任务事件连接、异常恢复状态和两条更新通道；还可重启 Harness、修改桌面偏好，并打开应用数据或日志目录。
+
+“导出诊断包”会生成一个有大小上限并按模式脱敏的 `.tar.gz` 文件，其中只包含结构化桌面状态报告、桌面日志末尾和内容说明；它不会复制 Harness 会话文件、凭据库或工作区文件。向公开 Issue 上传之前仍应先检查包内三个文件。
 
 ## 无感更新行为
 
@@ -114,6 +128,13 @@ Harness 成功启动后若意外退出，桌面外壳会分别等待 1 秒、5 �
 - 卸载程序默认不删除用户数据。
 
 发布和网络数据边界详见[隐私政策](PRIVACY.md)与[代码签名政策](CODE_SIGNING_POLICY.md)。
+
+## 常见问题
+
+- **安装阶段耗时较长：** 安装程序会预先解压 Electron、对应平台的 Node.js 运行时和已校验的 Harness seed，因此首次打开时不需要再下载运行时或现场编译。
+- **看不到托盘图标：** 检查 Windows 任务栏、GNOME/KDE 面板或 macOS 菜单栏的隐藏/折叠区域。再次启动应用只会恢复现有窗口，不会创建第二个进程。
+- **没有任务完成通知：** 允许系统向本应用发送通知，保持“桌面通知”开启，并隐藏或最小化主窗口。主窗口可见时应用有意保持静默。
+- **Harness 无法启动：** 打开“桌面控制中心”，导出诊断包，检查其中三个文件后，将其连同复现步骤附加到 GitHub Issue。
 
 ## 本地开发
 

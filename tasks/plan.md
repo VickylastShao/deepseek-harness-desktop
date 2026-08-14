@@ -48,14 +48,14 @@ Release artifact naming
 
 ### Phase 1: Foundation and task completion
 
-- [ ] Task 1: Implement a reconnecting Harness task monitor.
+- [x] Task 1: Implement a reconnecting Harness task monitor.
   - Acceptance: connects only to the managed loopback origin; tracks running
     sessions; emits one completion for each observed true-to-false transition;
     malformed frames and disconnects fail soft.
   - Verification: `node --test test/task-completion-monitor.test.cjs`.
   - Files: `src/task-completion-monitor.cjs`,
     `test/task-completion-monitor.test.cjs`.
-- [ ] Task 2: Wire native task-completion notifications into the application.
+- [x] Task 2: Wire native task-completion notifications into the application.
   - Acceptance: starts after Harness readiness, stops on restart/quit, respects
     notification preferences, stays silent while the main window is visible,
     and restores the existing window when clicked.
@@ -64,18 +64,18 @@ Release artifact naming
 
 ### Checkpoint: Task notifications
 
-- [ ] Focused tests pass.
-- [ ] Existing unit suite remains green.
-- [ ] No Web UI injection or additional network endpoint is introduced.
+- [x] Focused tests pass.
+- [x] Existing unit suite remains green.
+- [x] No Web UI injection or additional network endpoint is introduced.
 
 ### Phase 2: Diagnostic bundle
 
-- [ ] Task 3: Build bounded redaction and archive generation.
+- [x] Task 3: Build bounded redaction and archive generation.
   - Acceptance: replaces known private paths and credential-like values,
     truncates logs, writes report/log/readme files, and cleans temporary data.
   - Verification: `node --test test/diagnostic-bundle.test.cjs`.
   - Files: `src/diagnostic-bundle.cjs`, `test/diagnostic-bundle.test.cjs`.
-- [ ] Task 4: Add one-click export through the control center.
+- [x] Task 4: Add one-click export through the control center.
   - Acceptance: native save dialog, `.tar.gz` output, progress/result state,
     cancellation without error, no session or credential files included.
   - Verification: snapshot/IPC unit tests and control-center smoke coverage.
@@ -84,19 +84,19 @@ Release artifact naming
 
 ### Checkpoint: Support artifact
 
-- [ ] A generated archive contains only the documented three files.
-- [ ] Test fixtures prove secrets and home paths are absent.
-- [ ] Full unit suite passes.
+- [x] A generated archive contains only the documented three files.
+- [x] Test fixtures prove secrets and home paths are absent.
+- [x] Full unit suite passes.
 
 ### Phase 3: Control center operations view
 
-- [ ] Task 5: Extend the snapshot with operational state.
+- [x] Task 5: Extend the snapshot with operational state.
   - Acceptance: reports platform/runtime identity, endpoint, process state,
     task-monitor connection, bounded recovery state, and diagnostic status.
   - Verification: desktop-center and recovery tests.
   - Files: `src/desktop-center.cjs`, `src/runtime-recovery.cjs`,
     `src/harness-process.cjs`, associated tests.
-- [ ] Task 6: Render the operational state accessibly in Chinese and English.
+- [x] Task 6: Render the operational state accessibly in Chinese and English.
   - Acceptance: responsive layout, live status updates, meaningful empty/error
     states, keyboard-accessible actions, no sensitive raw path in diagnostics.
   - Verification: tray/control-center Electron smoke and screenshot capture.
@@ -104,19 +104,19 @@ Release artifact naming
 
 ### Checkpoint: Operations UI
 
-- [ ] Snapshot contract and renderer agree.
-- [ ] Tray smoke opens the enhanced control center.
-- [ ] README screenshot can be regenerated from deterministic fixture state.
+- [x] Snapshot contract and renderer agree.
+- [x] Tray smoke and deterministic screenshot capture load the enhanced control center.
+- [x] README screenshot can be regenerated from deterministic fixture state.
 
 ### Phase 4: Download and release experience
 
-- [ ] Task 7: Generate release notes with direct artifact links.
+- [x] Task 7: Generate release notes with direct artifact links.
   - Acceptance: Windows, Ubuntu, Intel macOS, and Apple Silicon macOS links;
     checksum/signing/install guidance; optional generated change log.
   - Verification: release-note generator unit tests.
   - Files: `scripts/generate-release-notes.cjs`, test, workflow.
-- [ ] Task 8: Improve bilingual README install and troubleshooting sections.
-  - Acceptance: current-version direct downloads, package sizes/types,
+- [x] Task 8: Improve bilingual README install and troubleshooting sections.
+  - Acceptance: current-version direct downloads, package types/architectures,
     verification steps, diagnostic export instructions, notification behavior,
     and explicit unsigned-build wording.
   - Verification: link/version assertions in tests and manual Markdown review.
@@ -124,11 +124,11 @@ Release artifact naming
 
 ### Checkpoint: Complete
 
-- [ ] `npm test` passes.
-- [ ] `npm run smoke:tray` passes in a graphical session.
-- [ ] `npm run dist -- --linux --x64 --publish never` succeeds where the local
+- [x] `npm test` passes.
+- [x] `npm run smoke:tray` passes in a graphical session.
+- [x] `npm run dist -- --linux --x64 --publish never` succeeds where the local
   build environment supports it.
-- [ ] Git diff contains no generated runtime or installer artifacts.
+- [x] Git diff contains no generated runtime or installer artifacts.
 
 ## Risks and Mitigations
 
@@ -149,4 +149,3 @@ Release artifact naming
   dependency and increasing installer size.
 - Existing `notifications` preference controls both tray-residency and task
   completion notifications.
-

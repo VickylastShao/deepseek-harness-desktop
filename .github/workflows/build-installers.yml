@@ -286,8 +286,21 @@ jobs:
           merge-multiple: true
       - name: Merge cross-platform desktop update metadata
         run: node scripts/desktop-update-metadata.cjs merge release-input/update-metadata release-input/release
+      - name: Generate GitHub change log
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh api --method POST "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            -f tag_name="${GITHUB_REF_NAME}" --jq .body > release-input/generated-changes.md; then
+            echo "## Changes" > release-input/generated-changes.md
+            echo >> release-input/generated-changes.md
+            echo "See the repository commit history for this release." >> release-input/generated-changes.md
+          fi
+      - name: Generate direct-download release notes
+        run: node scripts/generate-release-notes.cjs "${GITHUB_REPOSITORY}" "${GITHUB_REF_NAME}" release-input/generated-changes.md release-input/release/RELEASE_NOTES.md
       - name: Publish tagged installers
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/latest*.yml release-input/release/SHA256SUMS-*.txt --generate-notes --repo "${GITHUB_REPOSITORY}" --verify-tag
+        run: gh release create "${GITHUB_REF_NAME}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/latest*.yml release-input/release/SHA256SUMS-*.txt --notes-file release-input/release/RELEASE_NOTES.md --repo "${GITHUB_REPOSITORY}" --verify-tag
