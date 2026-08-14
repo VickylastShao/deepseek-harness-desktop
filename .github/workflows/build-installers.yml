@@ -222,7 +222,7 @@ jobs:
             update-metadata/*.yml
 
   publish-runtime-channel:
-    if: inputs.signing_validation != true
+    if: github.event_name == 'schedule'
     needs: build
     runs-on: ubuntu-24.04
     steps:
