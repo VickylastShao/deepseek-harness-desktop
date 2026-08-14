@@ -23,10 +23,15 @@ header p { margin: 5px 0 0; color: #667085; }
 h2 { margin: 0 0 14px; font-size: 17px; }
 label, .path-row { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-top: 1px solid #edf0f5; }
 label:first-of-type, .path-row:first-of-type { border-top: 0; }
+label { cursor: pointer; }
 input[type="checkbox"] { width: 19px; height: 19px; accent-color: #335cff; }
-button { border: 0; border-radius: 10px; padding: 10px 14px; color: white; background: #335cff; font: inherit; cursor: pointer; }
+button { min-height: 44px; border: 0; border-radius: 10px; padding: 10px 14px; color: white; background: #335cff; font: inherit; cursor: pointer; transition: background-color 120ms ease-out, box-shadow 120ms ease-out, transform 120ms ease-out; }
+button:hover:not(:disabled) { background: #274bea; }
 button.secondary { color: #293452; background: #edf1f7; }
-button:disabled { cursor: default; opacity: .5; }
+button.secondary:hover:not(:disabled) { background: #dfe5ef; }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:focus-visible, input:focus-visible { outline: 3px solid rgba(51,92,255,.34); outline-offset: 2px; }
+button:disabled { cursor: not-allowed; opacity: .5; }
 .actions { display: flex; gap: 8px; }
 .path-row > div { min-width: 0; display: grid; gap: 4px; }
 code { overflow: hidden; color: #667085; font: 12px "SFMono-Regular", Consolas, monospace; text-overflow: ellipsis; white-space: nowrap; }
@@ -39,4 +44,5 @@ code { overflow: hidden; color: #667085; font: 12px "SFMono-Regular", Consolas, 
   .card { border-color: #2d3445; background: rgba(26,31,45,.95); }
   label, .path-row { border-color: #303748; }
   button.secondary { color: #e5e9f5; background: #30384b; }
+  button.secondary:hover:not(:disabled) { background: #3b455c; }
 }
