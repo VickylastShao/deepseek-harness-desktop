@@ -3,8 +3,23 @@
 const path = require('node:path')
 const { readFileSync } = require('node:fs')
 const { mkdir, appendFile } = require('node:fs/promises')
-const { app, BrowserWindow, ipcMain, shell } = require('electron')
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  nativeImage,
+  Notification,
+  shell,
+  Tray,
+} = require('electron')
+const {
+  createTrayImage,
+  DesktopTrayController,
+  trayLabels,
+} = require('./desktop-tray.cjs')
 const { HarnessProcess } = require('./harness-process.cjs')
+const { restartManagedRuntime } = require('./runtime-control.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
 const {
@@ -14,15 +29,18 @@ const {
 } = require('./window-policy.cjs')
 
 let mainWindow
+let trayController
 let runtimeOrigin
 let harnessProcess
 let starting = false
+let restarting = false
 let quitting = false
 let shutdownStarted = false
 let backgroundAbortController
 let backgroundUpdatePromise
 let backgroundUpdateTimer
 let logFile
+let logDirectory
 let logQueue = Promise.resolve()
 
 function bundledNodeTools() {
@@ -55,13 +73,43 @@ function writeLog(source, value) {
 }
 
 async function initializeLogging() {
-  const logDir = path.join(app.getPath('userData'), 'logs')
-  await mkdir(logDir, { recursive: true })
-  logFile = path.join(logDir, 'desktop.log')
+  logDirectory = path.join(app.getPath('userData'), 'logs')
+  await mkdir(logDirectory, { recursive: true })
+  logFile = path.join(logDirectory, 'desktop.log')
   writeLog(
     'desktop',
     `launcher ${app.getVersion()}, Electron ${process.versions.electron}, Node ${process.versions.node}\n`,
   )
+}
+
+function initializeTray(window) {
+  trayController?.dispose()
+  trayController = new DesktopTrayController({
+    createTray: icon => new Tray(icon),
+    buildMenu: template => Menu.buildFromTemplate(template),
+    createNotification: options => new Notification(options),
+    isNotificationSupported: () => Notification.isSupported(),
+    isQuitting: () => quitting,
+    labels: trayLabels(app.getLocale()),
+    logDirectory: logDirectory ?? path.join(app.getPath('userData'), 'logs'),
+    onError: error => writeLog('desktop', `${error.stack ?? error.message}\n`),
+    onQuit: () => app.quit(),
+    onRestart: () => restartRuntime(),
+    openPath: target => shell.openPath(target),
+    trayIcon: createTrayImage(
+      nativeImage,
+      readFileSync(path.join(app.getAppPath(), 'assets', 'tray-icon.png')),
+    ),
+  })
+  trayController.initialize(window)
+}
+
+function showMainWindow() {
+  if (mainWindow === undefined || mainWindow.isDestroyed()) {
+    void createWindow()
+    return
+  }
+  trayController?.showWindow()
 }
 
 function sendStatus(status) {
@@ -72,6 +120,7 @@ function sendStatus(status) {
 
 async function createWindow() {
   mainWindow = new BrowserWindow(createWindowOptions(__dirname))
+  initializeTray(mainWindow)
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (isSafeExternalUrl(url)) void shell.openExternal(url)
@@ -219,14 +268,28 @@ async function startRuntime() {
   }
 }
 
+async function restartRuntime() {
+  if (restarting) return
+  restarting = true
+  try {
+    await restartManagedRuntime({
+      getCurrent: () => harnessProcess,
+      isQuitting: () => quitting,
+      isStarting: () => starting,
+      setCurrent: value => { harnessProcess = value },
+      start: () => startRuntime(),
+    })
+  } finally {
+    restarting = false
+  }
+}
+
 const hasLock = app.requestSingleInstanceLock()
 if (!hasLock) {
   app.quit()
 } else {
   app.on('second-instance', () => {
-    if (mainWindow === undefined) return
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    mainWindow.focus()
+    showMainWindow()
   })
 
   app.whenReady().then(async () => {
@@ -238,13 +301,13 @@ if (!hasLock) {
   })
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) void createWindow()
+    showMainWindow()
   })
-
-  app.on('window-all-closed', () => app.quit())
 
   app.on('before-quit', (event) => {
     quitting = true
+    trayController?.dispose()
+    trayController = undefined
     clearTimeout(backgroundUpdateTimer)
     backgroundUpdateTimer = undefined
     backgroundAbortController?.abort(new Error('Application is shutting down.'))
