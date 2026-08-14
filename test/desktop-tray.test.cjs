@@ -89,6 +89,7 @@ function createHarness(options = {}) {
     isNotificationSupported: () => true,
     isQuitting: options.isQuitting ?? (() => false),
     labels: trayLabels(options.locale ?? 'en-US'),
+    loginItemSupported: options.loginItemSupported ?? false,
     logDirectory: '/application/logs',
     onError: options.onError ?? (error => errors.push(error)),
     onQuit: () => {
@@ -97,6 +98,13 @@ function createHarness(options = {}) {
     onCheckUpdates: async () => {
       updateCheckCount += 1
     },
+    onPreferenceChange: async patch => ({
+      closeToTray: true,
+      notifications: true,
+      openAtLogin: false,
+      ...options.preferences,
+      ...patch,
+    }),
     onRestart: async () => {
       restartCount += 1
     },
@@ -105,6 +113,7 @@ function createHarness(options = {}) {
       return ''
     },
     trayIcon: { name: 'tray-icon' },
+    preferences: options.preferences,
   })
   controller.initialize(window)
   return {
@@ -147,6 +156,17 @@ test('explicit application quit allows the window to close normally', () => {
   assert.equal(harness.notifications.length, 0)
 })
 
+test('disabling close-to-tray turns the window close into an explicit quit', () => {
+  const harness = createHarness({ preferences: { closeToTray: false } })
+  const closeEvent = { prevented: false, preventDefault() { this.prevented = true } }
+
+  harness.window.emit('close', closeEvent)
+
+  assert.equal(closeEvent.prevented, true)
+  assert.equal(harness.window.hidden, false)
+  assert.equal(harness.quitCount(), 1)
+})
+
 test('notification failures never prevent the window from hiding', () => {
   const harness = createHarness({
     createNotification: () => ({
@@ -163,6 +183,16 @@ test('notification failures never prevent the window from hiding', () => {
   assert.equal(harness.window.hidden, true)
   assert.equal(harness.errors.length, 1)
   assert.match(harness.errors[0].message, /notification service unavailable/u)
+})
+
+test('desktop notifications can be disabled', () => {
+  const harness = createHarness({ preferences: { notifications: false } })
+  const closeEvent = { prevented: false, preventDefault() { this.prevented = true } }
+
+  harness.window.emit('close', closeEvent)
+
+  assert.equal(harness.window.hidden, true)
+  assert.equal(harness.notifications.length, 0)
 })
 
 test('tray clicks and the open action restore and focus the existing window', () => {
@@ -234,6 +264,21 @@ test('checking state prevents duplicate update checks', () => {
   const item = harness.menuTemplate().find(entry => entry.id === 'check-updates')
   assert.equal(item.label, 'Checking for Harness updates…')
   assert.equal(item.enabled, false)
+})
+
+test('tray preferences persist toggles and expose login startup only where supported', async () => {
+  const harness = createHarness({ loginItemSupported: true })
+  const submenu = harness.menuTemplate().find(item => item.id === 'preferences').submenu
+  assert.equal(submenu.find(item => item.id === 'close-to-tray').checked, true)
+  assert.equal(submenu.find(item => item.id === 'open-at-login').checked, false)
+
+  await submenu.find(item => item.id === 'open-at-login').click()
+  const updated = harness.menuTemplate().find(item => item.id === 'preferences').submenu
+  assert.equal(updated.find(item => item.id === 'open-at-login').checked, true)
+
+  const linuxHarness = createHarness({ loginItemSupported: false })
+  const linuxSubmenu = linuxHarness.menuTemplate().find(item => item.id === 'preferences').submenu
+  assert.equal(linuxSubmenu.some(item => item.id === 'open-at-login'), false)
 })
 
 test('tray labels follow the application locale', () => {

@@ -18,6 +18,11 @@ const {
   DesktopTrayController,
   trayLabels,
 } = require('./desktop-tray.cjs')
+const {
+  applyLoginItemPreference,
+  DesktopPreferencesStore,
+  loginItemSupported,
+} = require('./desktop-preferences.cjs')
 const { HarnessProcess } = require('./harness-process.cjs')
 const { restartManagedRuntime } = require('./runtime-control.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
@@ -45,6 +50,8 @@ let activeNodeTools
 let logFile
 let logDirectory
 let logQueue = Promise.resolve()
+let preferences
+let preferencesStore
 
 function bundledNodeTools() {
   const nodePackageDir = app.isPackaged
@@ -94,18 +101,35 @@ function initializeTray(window) {
     isNotificationSupported: () => Notification.isSupported(),
     isQuitting: () => quitting,
     labels: trayLabels(app.getLocale()),
+    loginItemSupported: loginItemSupported(),
     logDirectory: logDirectory ?? path.join(app.getPath('userData'), 'logs'),
     onError: error => writeLog('desktop', `${error.stack ?? error.message}\n`),
     onQuit: () => app.quit(),
     onCheckUpdates: () => checkRuntimeUpdateNow(),
+    onPreferenceChange: patch => updatePreferences(patch),
     onRestart: () => restartRuntime(),
     openPath: target => shell.openPath(target),
     trayIcon: createTrayImage(
       nativeImage,
       readFileSync(path.join(app.getAppPath(), 'assets', 'tray-icon.png')),
     ),
+    preferences,
   })
   trayController.initialize(window)
+}
+
+async function initializePreferences() {
+  preferencesStore = new DesktopPreferencesStore(path.join(app.getPath('userData'), 'preferences.json'))
+  preferences = await preferencesStore.load()
+  applyLoginItemPreference(app, preferences.openAtLogin)
+}
+
+async function updatePreferences(patch) {
+  preferences = await preferencesStore.update(patch)
+  if (patch.openAtLogin !== undefined) {
+    applyLoginItemPreference(app, preferences.openAtLogin)
+  }
+  return preferences
 }
 
 function showMainWindow() {
@@ -349,6 +373,7 @@ if (!hasLock) {
 
   app.whenReady().then(async () => {
     await initializeLogging()
+    await initializePreferences()
     await createWindow()
   }).catch((error) => {
     console.error(error)

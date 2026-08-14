@@ -3,8 +3,12 @@
 const ENGLISH_LABELS = Object.freeze({
   checkUpdates: 'Check for Harness Updates',
   checkingUpdates: 'Checking for Harness updates…',
+  closeToTray: 'Keep Running When Window Closes',
   logs: 'Open Log Folder',
+  notifications: 'Desktop Notifications',
   open: 'Open DeepSeek Harness',
+  openAtLogin: 'Start at Login',
+  preferences: 'Preferences',
   pendingUpdate: (current, pending) => `Harness ${current} · ${pending} ready after restart`,
   quit: 'Quit',
   restart: 'Restart Harness',
@@ -17,8 +21,12 @@ const ENGLISH_LABELS = Object.freeze({
 const CHINESE_LABELS = Object.freeze({
   checkUpdates: '检查 Harness 更新',
   checkingUpdates: '正在检查 Harness 更新……',
+  closeToTray: '关闭窗口后继续运行',
   logs: '打开日志目录',
+  notifications: '桌面通知',
   open: '打开 DeepSeek Harness',
+  openAtLogin: '开机启动',
+  preferences: '偏好设置',
   pendingUpdate: (current, pending) => `Harness ${current} · 重启后启用 ${pending}`,
   quit: '彻底退出',
   restart: '重启 Harness',
@@ -54,16 +62,24 @@ class DesktopTrayController {
     this.isNotificationSupported = options.isNotificationSupported
     this.isQuitting = options.isQuitting
     this.labels = options.labels
+    this.loginItemSupported = options.loginItemSupported ?? false
     this.logDirectory = options.logDirectory
     this.onError = options.onError
     this.onQuit = options.onQuit
     this.onRestart = options.onRestart
     this.onCheckUpdates = options.onCheckUpdates ?? (() => {})
+    this.onPreferenceChange = options.onPreferenceChange ?? (async () => this.preferences)
     this.openPath = options.openPath
     this.trayIcon = options.trayIcon
     this.window = undefined
     this.tray = undefined
     this.closeNotificationShown = false
+    this.preferences = {
+      closeToTray: true,
+      notifications: true,
+      openAtLogin: false,
+      ...options.preferences,
+    }
     this.updateState = { phase: 'idle' }
     this.handleClose = event => this.hideOnClose(event)
     this.handleTrayClick = () => this.showWindow()
@@ -104,6 +120,33 @@ class DesktopTrayController {
       },
       { id: 'restart', label: this.labels.restart, click: () => this.runAction(this.onRestart) },
       { id: 'logs', label: this.labels.logs, click: () => this.openLogDirectory() },
+      {
+        id: 'preferences',
+        label: this.labels.preferences,
+        submenu: [
+          {
+            id: 'close-to-tray',
+            label: this.labels.closeToTray,
+            type: 'checkbox',
+            checked: this.preferences.closeToTray,
+            click: () => this.updatePreference('closeToTray'),
+          },
+          {
+            id: 'notifications',
+            label: this.labels.notifications,
+            type: 'checkbox',
+            checked: this.preferences.notifications,
+            click: () => this.updatePreference('notifications'),
+          },
+          ...(this.loginItemSupported ? [{
+            id: 'open-at-login',
+            label: this.labels.openAtLogin,
+            type: 'checkbox',
+            checked: this.preferences.openAtLogin,
+            click: () => this.updatePreference('openAtLogin'),
+          }] : []),
+        ],
+      },
       { type: 'separator' },
       { id: 'quit', label: this.labels.quit, click: () => this.onQuit() },
     ]))
@@ -114,15 +157,30 @@ class DesktopTrayController {
     this.rebuildMenu()
   }
 
+  async updatePreference(key) {
+    await this.runAction(async () => {
+      this.preferences = await this.onPreferenceChange({
+        [key]: !this.preferences[key],
+      })
+      this.rebuildMenu()
+    })
+  }
+
   hideOnClose(event) {
     if (this.isQuitting()) return
     event.preventDefault()
+    if (!this.preferences.closeToTray) {
+      this.onQuit()
+      return
+    }
     this.window?.hide()
     this.showCloseNotificationOnce()
   }
 
   showCloseNotificationOnce() {
-    if (this.closeNotificationShown || !this.isNotificationSupported()) return
+    if (this.closeNotificationShown
+      || !this.preferences.notifications
+      || !this.isNotificationSupported()) return
     this.closeNotificationShown = true
     try {
       this.createNotification({

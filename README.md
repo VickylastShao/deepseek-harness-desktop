@@ -92,6 +92,11 @@ can also check immediately, reopen the window, restart Harness, open the log
 folder, or quit completely. Starting the app again restores the existing window
 rather than launching a second Harness process.
 
+The tray **Preferences** submenu persists close-to-tray and notification choices.
+Windows and macOS also expose **Start at Login** through the operating system's
+native login-item integration. Defaults remain conservative: close-to-tray and
+notifications are enabled; login startup is disabled.
+
 ## Screenshots
 
 <table>
