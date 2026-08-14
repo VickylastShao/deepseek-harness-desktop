@@ -36,6 +36,7 @@ async function main() {
     onQuit: () => {},
     onCheckUpdates: async () => {},
     onCheckDesktopUpdates: async () => {},
+    onOpenDesktopCenter: () => {},
     onPreferenceChange: async patch => ({
       closeToTray: true,
       notifications: true,
