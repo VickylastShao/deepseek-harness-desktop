@@ -69,9 +69,10 @@ Download the package for your platform from the
 | macOS Intel | `.dmg` or `.zip` |
 | macOS Apple Silicon | ARM64 `.dmg` or `.zip` |
 
-Current builds are unsigned. Windows SmartScreen and macOS Gatekeeper may show
-an unknown-publisher warning until platform signing and Apple notarization are
-configured.
+Release `v0.1.5` and earlier builds are unsigned. Windows SmartScreen and macOS
+Gatekeeper may show an unknown-publisher warning. The repository now enforces a
+signing preflight for future tagged releases; see the
+[release signing setup](docs/CODE_SIGNING.md).
 
 ## First launch
 
@@ -141,6 +142,10 @@ the Electron shell; new desktop-app releases remain available on GitHub.
   cancels any in-flight background download.
 - Uninstalling the app does not delete user data by default.
 
+See the project's [privacy policy](PRIVACY.md) and
+[code signing policy](CODE_SIGNING_POLICY.md) for the release and network-data
+boundaries.
+
 ## Development
 
 Node.js `24.18.1` is required. Preparing the seed downloads DeepSeek Harness
@@ -183,6 +188,11 @@ files. A separate stable
 [`runtime-channel`](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/runtime-channel)
 release contains the integrity-checked runtime manifest and platform archives
 used by the background updater.
+
+Tagged releases require macOS Developer ID signing and notarization plus a valid
+Windows Authenticode signature. Missing credentials stop the release before any
+installer is published. Development and scheduled runtime builds remain
+unsigned; configuration details are in [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md).
 
 ## License
 

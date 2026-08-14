@@ -54,7 +54,7 @@ npx @deepseek-ai/dsh web
 | Intel macOS | `.dmg` 或 `.zip` |
 | Apple Silicon macOS | ARM64 `.dmg` 或 `.zip` |
 
-当前构建尚未配置代码签名。Windows SmartScreen 和 macOS Gatekeeper 可能显示“未知发布者”提示。
+`v0.1.5` 及更早版本尚未签名，Windows SmartScreen 和 macOS Gatekeeper 可能显示“未知发布者”提示。仓库现已为后续正式标签版本增加强制签名前置检查，配置方法见[发布签名指南](docs/CODE_SIGNING.md)。
 
 ## 首次使用
 
@@ -100,6 +100,8 @@ npx @deepseek-ai/dsh web
 - 从系统托盘选择“彻底退出”时，应用会终止 Harness 子进程树，并取消仍在进行的后台下载。
 - 卸载程序默认不删除用户数据。
 
+发布和网络数据边界详见[隐私政策](PRIVACY.md)与[代码签名政策](CODE_SIGNING_POLICY.md)。
+
 ## 本地开发
 
 要求 Node.js `24.18.1`。首次准备 seed 时会从官方 npm registry 下载 DeepSeek Harness，并为当前平台构建和验证原生依赖。
@@ -134,6 +136,8 @@ npm run capture:screenshots
 ## 发布机制
 
 GitHub Actions 在各目标系统的原生 runner 上构建并执行真实 Harness 启动检查。每个正式标签版本包含安装包及平台 SHA-256 文件；独立的 [`runtime-channel`](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/runtime-channel) Release 保存后台更新器使用的运行时清单和四个平台归档。
+
+后续正式标签版本必须同时通过 macOS Developer ID 签名与公证、Windows Authenticode 验签；缺少凭据时流水线会在发布安装包之前失败。手动开发构建和定时运行时构建仍允许无签名执行。
 
 ## 许可证
 
