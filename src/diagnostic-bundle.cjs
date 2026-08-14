@@ -18,10 +18,18 @@ function redactDiagnosticText(value, options = {}) {
     .filter(entry => typeof entry?.value === 'string' && entry.value.length > 0)
     .sort((left, right) => right.value.length - left.value.length)
   for (const entry of paths) {
-    result = result.replace(
-      new RegExp(escapeRegExp(entry.value), process.platform === 'win32' ? 'giu' : 'gu'),
-      entry.replacement ?? '<PRIVATE_PATH>',
-    )
+    const rawVariants = new Set([entry.value, entry.value.replaceAll('\\', '/')])
+    const variants = new Set()
+    for (const value of rawVariants) {
+      variants.add(value)
+      variants.add(JSON.stringify(value).slice(1, -1))
+    }
+    for (const value of [...variants].filter(Boolean).sort((left, right) => right.length - left.length)) {
+      result = result.replace(
+        new RegExp(escapeRegExp(value), process.platform === 'win32' ? 'giu' : 'gu'),
+        () => entry.replacement ?? '<PRIVATE_PATH>',
+      )
+    }
   }
 
   result = result

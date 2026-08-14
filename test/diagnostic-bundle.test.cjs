@@ -38,6 +38,17 @@ test('diagnostic redaction removes known paths and credential-shaped values', ()
   assert.match(redacted, /Bearer <REDACTED>/u)
 })
 
+test('diagnostic redaction removes Windows paths after JSON escaping', () => {
+  const home = 'C:\\Users\\Alice Example'
+  const serialized = JSON.stringify({ workspace: `${home}\\private\\project` }, null, 2)
+  const redacted = redactDiagnosticText(serialized, {
+    paths: [{ value: home, replacement: '<HOME>' }],
+  })
+
+  assert.doesNotMatch(redacted, /Alice Example/u)
+  assert.match(redacted, /<HOME>\\\\private\\\\project/u)
+})
+
 test('diagnostic bundle contains only bounded redacted support files', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'dsh-diagnostic-test-'))
   const logs = path.join(root, 'logs')
