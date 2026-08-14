@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest"><strong>下载 v0.2.1</strong></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest"><strong>下载 v0.2.2</strong></a>
   · <a href="#开始使用">开始使用</a>
   · <a href="#问题排查与支持">问题支持</a>
   · <a href="README.md">English</a>
@@ -31,16 +31,16 @@
 
 ## 下载
 
-当前版本为 **v0.2.1**。常规安装请选择对应平台的推荐安装包；有需要时也可以使用备选格式。
+当前版本为 **v0.2.2**。常规安装请选择对应平台的推荐安装包；有需要时也可以使用备选格式。
 
 | 平台 | 推荐安装包 | 备选格式 | SHA-256 |
 | --- | --- | --- | --- |
-| Windows x64 | [安装程序 EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-win-x64.exe) | — | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-win32-x64.txt) |
-| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-linux-x86_64.AppImage) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-linux-x64.txt) |
-| Apple Silicon macOS | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-arm64.zip) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-darwin-arm64.txt) |
-| Intel macOS | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/DeepSeek-Harness-Desktop-0.2.1-mac-x64.zip) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.1/SHA256SUMS-darwin-x64.txt) |
+| Windows x64 | [安装程序 EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-win-x64.exe) | — | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-win32-x64.txt) |
+| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-linux-x86_64.AppImage) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-linux-x64.txt) |
+| Apple Silicon macOS | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-arm64.zip) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-darwin-arm64.txt) |
+| Intel macOS | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-x64.zip) | [校验值](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-darwin-x64.txt) |
 
-`v0.2.1` 及更早版本尚未签名，Windows SmartScreen 和 macOS Gatekeeper
+`v0.2.2` 及更早版本尚未签名，Windows SmartScreen 和 macOS Gatekeeper
 可能显示“未知发布者”。后续正式标签版本的强制签名流程见[发布签名指南](docs/CODE_SIGNING.md)。
 
 <details>
@@ -49,11 +49,11 @@
 从同一行下载校验文件，再对本地安装包计算 SHA-256：
 
 ```powershell
-Get-FileHash .\DeepSeek-Harness-Desktop-0.2.1-win-x64.exe -Algorithm SHA256
+Get-FileHash .\DeepSeek-Harness-Desktop-0.2.2-win-x64.exe -Algorithm SHA256
 ```
 
 ```bash
-sha256sum DeepSeek-Harness-Desktop-0.2.1-linux-amd64.deb
+sha256sum DeepSeek-Harness-Desktop-0.2.2-linux-amd64.deb
 ```
 
 </details>
