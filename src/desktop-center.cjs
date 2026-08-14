@@ -21,7 +21,13 @@ function createDesktopSnapshot(options) {
     harness: {
       lifecycle: { phase: 'starting', ...options.runtimeLifecycle },
       updates: { phase: 'idle', ...options.runtimeUpdateState },
+      process: { running: false, ...options.runtimeProcessState },
+      monitor: { phase: 'stopped', runningSessions: 0, ...options.taskMonitorState },
+      recovery: { attempts: 0, maxAttempts: 3, pending: false, ...options.recoveryState },
+      runtime: { ...options.runtimeIdentity },
     },
+    system: { ...options.system },
+    diagnostics: { phase: 'idle', ...options.diagnosticState },
     preferences: { ...options.preferences },
     capabilities: { loginItem: options.loginItemSupported === true },
     paths: { data: options.dataPath, logs: options.logPath },

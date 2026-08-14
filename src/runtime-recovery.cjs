@@ -46,6 +46,17 @@ class RuntimeRecoveryController {
     if (this.timer !== undefined) this.clearTimer(this.timer)
     this.timer = undefined
   }
+
+  snapshot() {
+    const now = this.now()
+    const attempts = this.attempts.filter(timestamp => now - timestamp < this.windowMs).length
+    return {
+      attempts,
+      maxAttempts: this.delaysMs.length,
+      pending: this.timer !== undefined,
+      windowMs: this.windowMs,
+    }
+  }
 }
 
 module.exports = {

@@ -13,5 +13,6 @@ contextBridge.exposeInMainWorld('desktopCenter', {
   checkHarnessUpdate: () => ipcRenderer.invoke('desktop-center:check-harness-update'),
   checkDesktopUpdate: () => ipcRenderer.invoke('desktop-center:check-desktop-update'),
   restartHarness: () => ipcRenderer.invoke('desktop-center:restart-harness'),
+  exportDiagnostics: () => ipcRenderer.invoke('desktop-center:export-diagnostics'),
   openDirectory: kind => ipcRenderer.invoke('desktop-center:open-directory', kind),
 })

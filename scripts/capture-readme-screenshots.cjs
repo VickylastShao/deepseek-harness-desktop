@@ -6,10 +6,12 @@ const { mkdir, mkdtemp, rm, writeFile } = require('node:fs/promises')
 const { app, BrowserWindow, ipcMain } = require('electron')
 const { HarnessProcess } = require('../src/harness-process.cjs')
 const { createDesktopCenterWindowOptions } = require('../src/window-policy.cjs')
+const packageManifest = require('../package.json')
 
 const projectRoot = path.resolve(__dirname, '..')
 const outputDir = path.join(projectRoot, 'docs', 'images')
 const screenshotSize = { width: 1440, height: 900 }
+const centerScreenshotSize = { width: 1440, height: 1200 }
 
 app.disableHardwareAcceleration()
 
@@ -35,6 +37,14 @@ async function load(window, target) {
 async function capture(window, filename) {
   const image = await window.webContents.capturePage()
   await writeFile(path.join(outputDir, filename), image.toPNG())
+}
+
+async function fitDocumentHeight(window, maximumHeight = 1_800) {
+  const documentHeight = await window.webContents.executeJavaScript(
+    'Math.ceil(Math.max(document.body.scrollHeight, document.documentElement.scrollHeight))',
+  )
+  const [width] = window.getContentSize()
+  window.setContentSize(width, Math.min(documentHeight + 2, maximumHeight))
 }
 
 async function main() {
@@ -75,16 +85,22 @@ async function main() {
     dshHome: path.join(temporaryHome, 'dsh-home'),
   })
   ipcMain.handle('desktop-center:snapshot', () => ({
-    desktop: { version: app.getVersion(), updates: { enabled: true, phase: 'current' } },
+    desktop: { version: packageManifest.version, updates: { enabled: true, phase: 'current' } },
     harness: {
       lifecycle: { phase: 'running' },
       updates: { phase: 'current', currentVersion: '0.1.0-rc.6' },
+      process: { running: true, pid: 41235 },
+      monitor: { phase: 'connected', runningSessions: 1 },
+      recovery: { attempts: 0, maxAttempts: 3, pending: false },
+      runtime: { source: 'bundled', endpoint: 'http://127.0.0.1:41235' },
     },
+    system: { platform: process.platform, arch: process.arch, electron: process.versions.electron, node: process.versions.node },
+    diagnostics: { phase: 'idle' },
     preferences: { closeToTray: true, notifications: true, openAtLogin: false },
     capabilities: { loginItem: true },
     paths: {
-      data: path.join(temporaryHome, 'DeepSeek Harness Desktop'),
-      logs: path.join(temporaryHome, 'DeepSeek Harness Desktop', 'logs'),
+      data: '/home/user/.config/deepseek-harness-desktop',
+      logs: '/home/user/.config/deepseek-harness-desktop/logs',
     },
   }))
 
@@ -102,12 +118,14 @@ async function main() {
 
     const center = new BrowserWindow({
       ...createDesktopCenterWindowOptions(path.join(projectRoot, 'src')),
-      ...screenshotSize,
+      ...centerScreenshotSize,
       show: false,
     })
     try {
       await load(center, path.join(projectRoot, 'src', 'renderer', 'desktop-center.html'))
       await new Promise(resolve => setTimeout(resolve, 300))
+      await fitDocumentHeight(center)
+      await new Promise(resolve => setTimeout(resolve, 100))
       await capture(center, 'desktop-control-center.png')
       console.log('Captured docs/images/desktop-control-center.png')
     } finally {

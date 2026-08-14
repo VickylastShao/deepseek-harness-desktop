@@ -11,6 +11,7 @@ function createWindowOptions(baseDir) {
     minWidth: 900,
     minHeight: 640,
     show: false,
+    icon: path.join(baseDir, '..', 'assets', 'app-icon.png'),
     backgroundColor: '#f5f7fb',
     title: 'DeepSeek Harness',
     webPreferences: {
@@ -30,6 +31,7 @@ function createDesktopCenterWindowOptions(baseDir) {
     minWidth: 620,
     minHeight: 560,
     show: false,
+    icon: path.join(baseDir, '..', 'assets', 'app-icon.png'),
     backgroundColor: '#f4f7fb',
     title: 'DeepSeek Harness Desktop',
     webPreferences: {
