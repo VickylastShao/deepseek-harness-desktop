@@ -11,7 +11,8 @@
     <main>
       <header>
         <div class="mark" aria-hidden="true">DS</div>
-        <div><h1 data-i18n="title">Desktop Control Center</h1><p data-i18n="subtitle">Runtime, updates, and local desktop preferences</p></div>
+        <div class="heading-copy"><h1 data-i18n="title">Desktop Control Center</h1><p data-i18n="subtitle">Runtime health, updates, diagnostics, and local preferences</p></div>
+        <span id="overall-status" class="overall-status">—</span>
       </header>
       <section class="status-grid" aria-live="polite">
         <article class="card">
@@ -24,6 +25,22 @@
           <strong id="harness-version">—</strong><p id="harness-status">—</p>
           <div class="actions"><button id="check-harness" type="button" data-i18n="checkHarness">Check Harness update</button><button id="restart-harness" class="secondary" type="button" data-i18n="restart">Restart</button></div>
         </article>
+      </section>
+      <section class="card section-card">
+        <div class="section-heading"><div><h2 data-i18n="operations">Operations</h2><p data-i18n="operationsHint">Live state from the managed local Harness process</p></div></div>
+        <div class="facts">
+          <div class="fact"><span data-i18n="endpoint">Local endpoint</span><strong id="runtime-endpoint">—</strong></div>
+          <div class="fact"><span data-i18n="runtimeSource">Runtime source</span><strong id="runtime-source">—</strong></div>
+          <div class="fact"><span data-i18n="process">Process</span><strong id="runtime-process">—</strong></div>
+          <div class="fact"><span data-i18n="taskEvents">Task event stream</span><strong id="task-monitor">—</strong></div>
+          <div class="fact"><span data-i18n="activeTasks">Active tasks</span><strong id="active-tasks">0</strong></div>
+          <div class="fact"><span data-i18n="recovery">Crash recovery</span><strong id="recovery-state">—</strong></div>
+        </div>
+        <div class="system-line"><span data-i18n="system">System</span><code id="system-state">—</code></div>
+      </section>
+      <section class="card section-card diagnostic-card">
+        <div><h2 data-i18n="diagnostics">Diagnostics</h2><p id="diagnostic-status" data-i18n="diagnosticsHint">Export a bounded, redacted support bundle without sessions or credentials.</p></div>
+        <button id="export-diagnostics" type="button" data-i18n="exportDiagnostics">Export diagnostic bundle</button>
       </section>
       <section class="card section-card">
         <h2 data-i18n="preferences">Preferences</h2>

@@ -85,3 +85,15 @@ test('manual reset cancels recovery and clears the circuit breaker', () => {
   assert.equal(harness.controller.handleUnexpectedExit(new Error('manual retry failed')), true)
   assert.equal(harness.scheduled.at(-1).attempt, 1)
 })
+
+test('recovery diagnostics expose bounded counts without failure details', () => {
+  const harness = createHarness()
+  harness.controller.handleUnexpectedExit(new Error('contains private diagnostics'))
+
+  assert.deepEqual(harness.controller.snapshot(), {
+    attempts: 1,
+    maxAttempts: 3,
+    pending: true,
+    windowMs: 1_000,
+  })
+})

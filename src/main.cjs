@@ -2,11 +2,12 @@
 
 const path = require('node:path')
 const { pathToFileURL } = require('node:url')
-const { readFileSync } = require('node:fs')
+const { existsSync, readFileSync } = require('node:fs')
 const { mkdir, appendFile } = require('node:fs/promises')
 const {
   app,
   BrowserWindow,
+  dialog,
   ipcMain,
   Menu,
   nativeImage,
@@ -22,6 +23,7 @@ const {
 } = require('./desktop-tray.cjs')
 const { DesktopAppUpdater } = require('./desktop-app-updater.cjs')
 const { createDesktopSnapshot, validatePreferenceChange } = require('./desktop-center.cjs')
+const { createDiagnosticBundle } = require('./diagnostic-bundle.cjs')
 const {
   applyLoginItemPreference,
   DesktopPreferencesStore,
@@ -69,6 +71,7 @@ let runtimeUpdateState = { phase: 'idle' }
 let runtimeLifecycle = { phase: 'starting' }
 let taskCompletionMonitor
 let taskMonitorState = { phase: 'stopped', runningSessions: 0 }
+let diagnosticState = { phase: 'idle' }
 
 function bundledNodeTools() {
   const nodePackageDir = app.isPackaged
@@ -140,12 +143,32 @@ function initializeTray(window) {
 }
 
 function desktopSnapshot() {
+  const runtimeSource = activeRuntime === undefined
+    ? undefined
+    : path.resolve(activeRuntime.rootDir) === path.resolve(activeRuntimeStore?.seedDir ?? '')
+      ? 'bundled'
+      : 'managed'
   return createDesktopSnapshot({
     appVersion: app.getVersion(),
     desktopUpdateState,
     runtimeLifecycle,
     runtimeUpdateState,
+    runtimeProcessState: harnessProcess?.snapshot(),
+    runtimeIdentity: {
+      version: activeRuntime?.version,
+      source: runtimeSource,
+      endpoint: runtimeOrigin,
+    },
     taskMonitorState,
+    recoveryState: runtimeRecovery?.snapshot(),
+    system: {
+      platform: process.platform,
+      arch: process.arch,
+      electron: process.versions.electron,
+      node: process.versions.node,
+      packaged: app.isPackaged,
+    },
+    diagnosticState,
     preferences,
     loginItemSupported: loginItemSupported(),
     dataPath: app.getPath('userData'),
@@ -179,6 +202,84 @@ function setRuntimeLifecycle(patch) {
 function setTaskMonitorState(state) {
   taskMonitorState = { ...state }
   broadcastDesktopSnapshot()
+}
+
+function setDiagnosticState(patch) {
+  diagnosticState = { ...diagnosticState, ...patch }
+  broadcastDesktopSnapshot()
+}
+
+function diagnosticReport() {
+  const snapshot = desktopSnapshot()
+  return {
+    schema: 1,
+    generatedAt: new Date().toISOString(),
+    application: {
+      version: snapshot.desktop.version,
+      platform: snapshot.system.platform,
+      arch: snapshot.system.arch,
+      electron: snapshot.system.electron,
+      node: snapshot.system.node,
+      packaged: snapshot.system.packaged,
+      locale: app.getLocale(),
+    },
+    desktopUpdates: snapshot.desktop.updates,
+    harness: {
+      lifecycle: snapshot.harness.lifecycle,
+      updates: snapshot.harness.updates,
+      process: snapshot.harness.process,
+      monitor: snapshot.harness.monitor,
+      recovery: snapshot.harness.recovery,
+      runtime: snapshot.harness.runtime,
+    },
+    preferences: snapshot.preferences,
+  }
+}
+
+async function exportDiagnosticBundle() {
+  if (diagnosticState.phase === 'exporting') return { cancelled: false, busy: true }
+  const timestamp = new Date().toISOString().replace(/[:.]/gu, '-')
+  const options = {
+    title: 'Export DeepSeek Harness Desktop Diagnostics',
+    defaultPath: path.join(app.getPath('downloads'), `DeepSeek-Harness-Diagnostic-${timestamp}.tar.gz`),
+    filters: [{ name: 'Gzip-compressed tar archive', extensions: ['gz'] }],
+  }
+  const result = desktopCenterWindow !== undefined && !desktopCenterWindow.isDestroyed()
+    ? await dialog.showSaveDialog(desktopCenterWindow, options)
+    : await dialog.showSaveDialog(options)
+  if (result.canceled || result.filePath === undefined) return { cancelled: true }
+
+  setDiagnosticState({ phase: 'exporting', error: undefined, filename: undefined })
+  try {
+    await logQueue
+    const workspace = process.env.DSH_DESKTOP_WORKSPACE ?? app.getPath('home')
+    const bundle = await createDiagnosticBundle({
+      outputPath: result.filePath,
+      report: diagnosticReport(),
+      logFiles: logFile !== undefined && existsSync(logFile) ? [logFile] : [],
+      redactions: {
+        paths: [
+          { value: app.getPath('userData'), replacement: '<APP_DATA>' },
+          { value: workspace, replacement: '<WORKSPACE>' },
+          { value: app.getPath('home'), replacement: '<HOME>' },
+        ],
+      },
+    })
+    const generatedAt = new Date().toISOString()
+    setDiagnosticState({
+      phase: 'ready',
+      filename: path.basename(bundle.outputPath),
+      generatedAt,
+      error: undefined,
+    })
+    writeLog('desktop', `exported diagnostic bundle ${path.basename(bundle.outputPath)}\n`)
+    return { cancelled: false, filename: path.basename(bundle.outputPath), generatedAt }
+  } catch (error) {
+    const normalized = error instanceof Error ? error : new Error(String(error))
+    setDiagnosticState({ phase: 'error', error: normalized.message })
+    writeLog('desktop', `diagnostic export failed: ${normalized.stack ?? normalized.message}\n`)
+    throw normalized
+  }
 }
 
 function stopTaskCompletionMonitor() {
@@ -587,6 +688,7 @@ ipcMain.handle('desktop-center:set-preference', async (_event, key, value) => {
 ipcMain.handle('desktop-center:check-harness-update', () => checkRuntimeUpdateNow())
 ipcMain.handle('desktop-center:check-desktop-update', () => desktopAppUpdater?.checkNow())
 ipcMain.handle('desktop-center:restart-harness', () => restartRuntime())
+ipcMain.handle('desktop-center:export-diagnostics', () => exportDiagnosticBundle())
 
 ipcMain.handle('desktop-center:open-directory', async (_event, kind) => {
   const target = kind === 'data'

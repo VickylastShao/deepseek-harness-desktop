@@ -79,7 +79,13 @@ async function main() {
     harness: {
       lifecycle: { phase: 'running' },
       updates: { phase: 'current', currentVersion: '0.1.0-rc.6' },
+      process: { running: true, pid: 41235 },
+      monitor: { phase: 'connected', runningSessions: 1 },
+      recovery: { attempts: 0, maxAttempts: 3, pending: false },
+      runtime: { source: 'bundled', endpoint: 'http://127.0.0.1:41235' },
     },
+    system: { platform: process.platform, arch: process.arch, electron: process.versions.electron, node: process.versions.node },
+    diagnostics: { phase: 'idle' },
     preferences: { closeToTray: true, notifications: true, openAtLogin: false },
     capabilities: { loginItem: true },
     paths: {

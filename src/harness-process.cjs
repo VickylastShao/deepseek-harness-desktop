@@ -157,6 +157,14 @@ class HarnessProcess {
     await this.terminateTree(child, this.platform)
     if (this.child === child) this.child = undefined
   }
+
+  snapshot() {
+    return {
+      pid: this.child?.pid,
+      running: this.child !== undefined,
+      stopping: this.stopping,
+    }
+  }
 }
 
 module.exports = {

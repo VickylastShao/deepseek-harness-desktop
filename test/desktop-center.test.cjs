@@ -10,6 +10,12 @@ test('desktop center snapshot keeps shell and Harness update channels separate',
     desktopUpdateState: { enabled: true, phase: 'ready', availableVersion: '0.2.1' },
     runtimeLifecycle: { phase: 'running' },
     runtimeUpdateState: { phase: 'prepared', currentVersion: '0.1.0-rc.6', pendingVersion: '0.1.0-rc.7' },
+    runtimeProcessState: { running: true, pid: 1234 },
+    runtimeIdentity: { source: 'bundled', endpoint: 'http://127.0.0.1:41235' },
+    taskMonitorState: { phase: 'connected', runningSessions: 2 },
+    recoveryState: { attempts: 1, maxAttempts: 3, pending: false },
+    system: { platform: 'linux', arch: 'x64', electron: '43.4.0', node: '24.18.1' },
+    diagnosticState: { phase: 'ready', filename: 'diagnostic.tar.gz' },
     preferences: { closeToTray: true, notifications: true, openAtLogin: false },
     loginItemSupported: true,
     dataPath: '/data',
@@ -20,6 +26,12 @@ test('desktop center snapshot keeps shell and Harness update channels separate',
   assert.equal(snapshot.harness.updates.pendingVersion, '0.1.0-rc.7')
   assert.equal(snapshot.harness.lifecycle.phase, 'running')
   assert.equal(snapshot.capabilities.loginItem, true)
+  assert.equal(snapshot.harness.process.pid, 1234)
+  assert.equal(snapshot.harness.monitor.runningSessions, 2)
+  assert.equal(snapshot.harness.recovery.maxAttempts, 3)
+  assert.equal(snapshot.harness.runtime.source, 'bundled')
+  assert.equal(snapshot.system.electron, '43.4.0')
+  assert.equal(snapshot.diagnostics.filename, 'diagnostic.tar.gz')
 })
 
 test('desktop center accepts only known boolean preference changes', () => {
