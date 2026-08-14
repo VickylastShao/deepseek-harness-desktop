@@ -41,6 +41,8 @@ linux:
         - x64
 mac:
   category: public.app-category.developer-tools
+  hardenedRuntime: true
+  notarize: true
   target:
     - target: dmg
     - target: zip

@@ -12,7 +12,31 @@ permissions:
   contents: write
 
 jobs:
+  signing-preflight:
+    runs-on: ubuntu-24.04
+    env:
+      DSH_RELEASE_SIGNING_REQUIRED: ${{ startsWith(github.ref, 'refs/tags/v') }}
+      WINDOWS_SIGNING_PROVIDER: ${{ vars.WINDOWS_SIGNING_PROVIDER }}
+      MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+      MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+      APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+      SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+      SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+      SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+      SIGNPATH_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate release signing configuration
+        run: node scripts/validate-release-signing.cjs
+
   build:
+    needs: signing-preflight
     strategy:
       fail-fast: false
       matrix:
@@ -28,10 +52,12 @@ jobs:
           - id: darwin-x64
             os: macos-15-intel
             builder_args: --mac --x64
+            app_path: release/mac/DeepSeek Harness Desktop.app
             resources_path: release/mac/DeepSeek Harness Desktop.app/Contents/Resources
           - id: darwin-arm64
             os: macos-15
             builder_args: --mac --arm64
+            app_path: release/mac-arm64/DeepSeek Harness Desktop.app
             resources_path: release/mac-arm64/DeepSeek Harness Desktop.app/Contents/Resources
     runs-on: ${{ matrix.os }}
     env:
@@ -62,12 +88,95 @@ jobs:
         run: npm run package:runtime
       - name: Embed this repository's stable runtime channel
         run: node scripts/configure-runtime-channel.cjs "${{ env.RUNTIME_CHANNEL }}"
-      - name: Build platform installer
-        if: github.event_name != 'schedule'
+      - name: Build and require platform-signed installer
+        if: >-
+          github.event_name != 'schedule' &&
+          startsWith(github.ref, 'refs/tags/v') &&
+          (runner.os == 'macOS' ||
+          (runner.os == 'Windows' && vars.WINDOWS_SIGNING_PROVIDER == 'certificate'))
+        run: npm run dist -- ${{ matrix.builder_args }} --publish never --config.forceCodeSigning=true
+        env:
+          CSC_LINK: ${{ runner.os == 'macOS' && secrets.MAC_CSC_LINK || '' }}
+          CSC_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+          APPLE_API_KEY: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY || '' }}
+          APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
+          APPLE_API_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
+          APPLE_TEAM_ID: ${{ runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+          WIN_CSC_LINK: ${{ runner.os == 'Windows' && secrets.WIN_CSC_LINK || '' }}
+          WIN_CSC_KEY_PASSWORD: ${{ runner.os == 'Windows' && secrets.WIN_CSC_KEY_PASSWORD || '' }}
+      - name: Build unsigned macOS development installer
+        if: >-
+          github.event_name != 'schedule' &&
+          !startsWith(github.ref, 'refs/tags/v') &&
+          runner.os == 'macOS'
+        run: npm run dist -- ${{ matrix.builder_args }} --publish never --config.mac.notarize=false --config.mac.identity=null
+      - name: Build unsigned or externally signed platform installer
+        if: >-
+          github.event_name != 'schedule' &&
+          runner.os != 'macOS' &&
+          !(startsWith(github.ref, 'refs/tags/v') &&
+          runner.os == 'Windows' && vars.WINDOWS_SIGNING_PROVIDER == 'certificate')
         run: npm run dist -- ${{ matrix.builder_args }} --publish never
       - name: Verify the packaged seed and real web server
         if: github.event_name != 'schedule'
         run: npm run verify:packaged -- "${{ matrix.resources_path }}"
+      - name: Upload unsigned Windows installer for SignPath
+        id: upload-unsigned-windows
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') &&
+          runner.os == 'Windows' && vars.WINDOWS_SIGNING_PROVIDER == 'signpath'
+        uses: actions/upload-artifact@v7
+        with:
+          name: unsigned-windows-${{ github.run_id }}
+          path: release/*.exe
+          if-no-files-found: error
+          compression-level: 0
+      - name: Submit Windows installer to SignPath
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') &&
+          runner.os == 'Windows' && vars.WINDOWS_SIGNING_PROVIDER == 'signpath'
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-windows.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed-windows
+      - name: Install the SignPath-signed Windows installer
+        if: >-
+          startsWith(github.ref, 'refs/tags/v') &&
+          runner.os == 'Windows' && vars.WINDOWS_SIGNING_PROVIDER == 'signpath'
+        shell: pwsh
+        run: |
+          $signed = @(Get-ChildItem signed-windows -Recurse -File -Filter *.exe)
+          $unsigned = @(Get-ChildItem release -File -Filter *.exe)
+          if ($signed.Count -ne 1 -or $unsigned.Count -ne 1) {
+            throw "Expected exactly one signed and one unsigned Windows installer."
+          }
+          Copy-Item -LiteralPath $signed[0].FullName -Destination $unsigned[0].FullName -Force
+      - name: Verify Windows Authenticode signature
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installers = @(Get-ChildItem release -File -Filter *.exe)
+          if ($installers.Count -ne 1) {
+            throw "Expected exactly one Windows installer."
+          }
+          $signature = Get-AuthenticodeSignature -FilePath $installers[0].FullName
+          if ($signature.Status -ne 'Valid') {
+            throw "Windows signature verification failed: $($signature.Status) $($signature.StatusMessage)"
+          }
+          Write-Host "Verified Windows publisher: $($signature.SignerCertificate.Subject)"
+      - name: Verify macOS signature and notarization ticket
+        if: startsWith(github.ref, 'refs/tags/v') && runner.os == 'macOS'
+        shell: bash
+        run: |
+          codesign --verify --deep --strict --verbose=2 "${{ matrix.app_path }}"
+          spctl --assess --type execute --verbose=4 "${{ matrix.app_path }}"
+          xcrun stapler validate "${{ matrix.app_path }}"
       - name: Write installer checksums
         if: github.event_name != 'schedule'
         run: node scripts/write-checksums.cjs release release/SHA256SUMS-${{ matrix.id }}.txt
