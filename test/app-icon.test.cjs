@@ -26,7 +26,7 @@ test('white DeepSeek artwork is used by every packaged platform and desktop surf
   const config = yaml.load(builderYaml)
 
   assert.match(svg, /fill="#FFFFFF"/u)
-  assert.match(svg, /fill="#335CFF"/u)
+  assert.doesNotMatch(svg, /<rect\b/u)
   assert.deepEqual(pngDimensions(appPng), { width: 1024, height: 1024 })
   assert.deepEqual(pngDimensions(trayPng), { width: 64, height: 64 })
   assert.equal(config.win.icon, 'assets/app-icon.svg')
