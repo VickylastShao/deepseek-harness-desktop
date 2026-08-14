@@ -51,6 +51,7 @@ that setup into a conventional application:
 | --- | --- |
 | Self-contained runtime | Ships its own Node.js and platform-native Harness runtime. |
 | One-click launch | Starts Harness in the background with no visible terminal. |
+| System tray lifecycle | Closing the window keeps Harness running; reopen, restart Harness, view logs, or quit from the tray. |
 | Local-only bridge | Loads only the Harness server started on a random `127.0.0.1` port. |
 | Staged Harness updates | Downloads and verifies a newer runtime while the current session keeps running. |
 | Safe next-launch activation | Switches to the staged runtime on the next normal start, with the bundled runtime kept as a fallback. |
@@ -82,6 +83,12 @@ configured.
 
 The desktop app uses your home directory as the initial working directory.
 Set `DSH_DESKTOP_WORKSPACE` before launch to choose a different default.
+
+Closing the main window hides it instead of stopping an active Harness session.
+The first close shows a native reminder that the app is still running. Use the
+system tray menu to reopen the window, restart Harness, open the log folder, or
+quit completely. Starting the app again restores the existing window rather
+than launching a second Harness process.
 
 ## Screenshots
 
@@ -130,8 +137,8 @@ the Electron shell; new desktop-app releases remain available on GitHub.
   HTTPS URLs.
 - Harness state, managed runtimes, staged updates, and desktop logs live under
   Electron's per-user application-data directory.
-- Exiting the app terminates the Harness process tree and cancels any in-flight
-  background download.
+- Choosing **Quit** from the system tray terminates the Harness process tree and
+  cancels any in-flight background download.
 - Uninstalling the app does not delete user data by default.
 
 ## Development
@@ -143,6 +150,7 @@ current platform.
 ```bash
 npm ci
 npm test
+npm run smoke:tray
 npm run prepare:seed
 npm run smoke:harness
 npm run dist

@@ -7,6 +7,9 @@ MIT License:
 - Project: https://github.com/deepseek-ai/deepseek-harness
 - Copyright (c) 2026 DeepSeek
 
+The system tray artwork is derived from the DeepSeek Harness favicon in that
+project and is redistributed under the same MIT License.
+
 ## DeepSeek Harness license
 
 MIT License

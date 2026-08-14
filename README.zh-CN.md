@@ -37,6 +37,7 @@ npx @deepseek-ai/dsh web
 | --- | --- |
 | 独立运行时 | 安装包自带 Node.js 和对应平台编译的 Harness 运行时。 |
 | 一键启动 | 后台启动 Harness，不显示命令行窗口。 |
+| 托盘生命周期 | 关闭窗口后 Harness 继续运行；可从托盘恢复窗口、重启 Harness、查看日志或彻底退出。 |
 | 本机访问边界 | 只加载应用启动的随机 `127.0.0.1` 端口。 |
 | 后台暂存更新 | 当前会话继续运行时下载并校验较新的 Harness。 |
 | 下次启动切换 | 正常重启时启用暂存版本，并保留安装包内运行时作为回退。 |
@@ -64,6 +65,8 @@ npx @deepseek-ai/dsh web
 5. 创建会话并描述需要智能体完成的任务。
 
 桌面应用默认以用户主目录作为初始工作目录；可以在启动前通过 `DSH_DESKTOP_WORKSPACE` 指定其他目录。
+
+关闭主窗口只会隐藏窗口，不会停止正在执行的 Harness 会话。第一次关闭时，系统会提示应用仍在托盘运行。托盘菜单支持恢复窗口、重启 Harness、打开日志目录和彻底退出；再次启动桌面应用会恢复已有窗口，不会创建第二个 Harness 进程。
 
 ## 软件截图
 
@@ -94,7 +97,7 @@ npx @deepseek-ai/dsh web
 - 窗口只允许访问安装包内的启动页和当前 Harness 进程报告的精确回环地址。
 - 外部链接只允许 HTTP/HTTPS，并交给系统浏览器打开。
 - Harness 数据、活动运行时、pending 更新和日志均位于 Electron 的用户应用数据目录。
-- 退出应用时终止 Harness 子进程树，并取消仍在进行的后台下载。
+- 从系统托盘选择“彻底退出”时，应用会终止 Harness 子进程树，并取消仍在进行的后台下载。
 - 卸载程序默认不删除用户数据。
 
 ## 本地开发
@@ -104,6 +107,7 @@ npx @deepseek-ai/dsh web
 ```bash
 npm ci
 npm test
+npm run smoke:tray
 npm run prepare:seed
 npm run smoke:harness
 npm run dist
