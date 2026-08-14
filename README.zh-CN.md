@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest"><strong>下载 v0.2.2</strong></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2"><strong>下载 v0.2.2 预发布版</strong></a>
   · <a href="#开始使用">开始使用</a>
   · <a href="#问题排查与支持">问题支持</a>
   · <a href="README.md">English</a>
@@ -31,7 +31,7 @@
 
 ## 下载
 
-当前版本为 **v0.2.2**。常规安装请选择对应平台的推荐安装包；有需要时也可以使用备选格式。
+当前预发布版本为 **v0.2.2**。常规安装请选择对应平台的推荐安装包；有需要时也可以使用备选格式。
 
 | 平台 | 推荐安装包 | 备选格式 | SHA-256 |
 | --- | --- | --- | --- |

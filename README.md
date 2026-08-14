@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest"><strong>Download v0.2.2</strong></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2"><strong>Download v0.2.2 prerelease</strong></a>
   · <a href="#get-started">Get started</a>
   · <a href="#troubleshooting-and-support">Support</a>
   · <a href="README.zh-CN.md">简体中文</a>
@@ -32,7 +32,7 @@
 
 ## Download
 
-The current release is **v0.2.2**. Pick the normal installer for your platform;
+The current prerelease is **v0.2.2**. Pick the normal installer for your platform;
 the alternatives provide another package format where available.
 
 | Platform | Recommended | Alternative | SHA-256 |
