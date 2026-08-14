@@ -55,6 +55,7 @@ that setup into a conventional application:
 | Local-only bridge | Loads only the Harness server started on a random `127.0.0.1` port. |
 | Staged Harness updates | Downloads and verifies a newer runtime while the current session keeps running. |
 | Safe next-launch activation | Switches to the staged runtime on the next normal start, with the bundled runtime kept as a fallback. |
+| Bounded crash recovery | Restarts Harness after an unexpected exit with backoff, then stops after repeated failures instead of looping forever. |
 | Native installers | Produces Windows, Ubuntu, Intel macOS, and Apple Silicon macOS packages. |
 
 ## Install
@@ -96,6 +97,11 @@ The tray **Preferences** submenu persists close-to-tray and notification choices
 Windows and macOS also expose **Start at Login** through the operating system's
 native login-item integration. Defaults remain conservative: close-to-tray and
 notifications are enabled; login startup is disabled.
+
+If Harness exits unexpectedly after startup, the desktop shell retries after 1,
+5, and 15 seconds. A fourth failure inside five minutes opens the failure screen
+instead of starting an infinite recovery loop. A manual retry or tray restart
+clears that circuit breaker.
 
 ## Screenshots
 

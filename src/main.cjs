@@ -25,6 +25,7 @@ const {
 } = require('./desktop-preferences.cjs')
 const { HarnessProcess } = require('./harness-process.cjs')
 const { restartManagedRuntime } = require('./runtime-control.cjs')
+const { RuntimeRecoveryController } = require('./runtime-recovery.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
 const {
@@ -52,6 +53,7 @@ let logDirectory
 let logQueue = Promise.resolve()
 let preferences
 let preferencesStore
+let runtimeRecovery
 
 function bundledNodeTools() {
   const nodePackageDir = app.isPackaged
@@ -176,6 +178,26 @@ async function showFailure(error) {
   })
 }
 
+async function showRecoveryStatus({ attempt, delayMs, error }) {
+  writeLog('desktop', `scheduling automatic recovery ${attempt} in ${delayMs} ms\n`)
+  runtimeOrigin = undefined
+  if (mainWindow === undefined || mainWindow.isDestroyed()) return
+  await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
+  sendStatus({
+    phase: 'starting',
+    message: `Harness 意外退出，正在进行第 ${attempt} 次自动恢复……`,
+    detail: error.message,
+  })
+}
+
+function initializeRuntimeRecovery() {
+  runtimeRecovery = new RuntimeRecoveryController({
+    restart: () => startRuntime(),
+    onScheduled: state => { void showRecoveryStatus(state) },
+    onExhausted: ({ error }) => { void showFailure(error) },
+  })
+}
+
 async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore) {
   if (backgroundAbortController !== undefined || quitting) return false
   const channelUrl = runtimeChannelUrl()
@@ -282,7 +304,9 @@ async function handleUnexpectedExit(result) {
   if (quitting) return
   harnessProcess = undefined
   const reason = `Harness unexpectedly exited (${result.code ?? result.signal ?? 'unknown'}).`
-  await showFailure(new Error(result.detail === '' ? reason : `${reason}\n${result.detail}`))
+  const error = new Error(result.detail === '' ? reason : `${reason}\n${result.detail}`)
+  writeLog('desktop', `${error.message}\n`)
+  runtimeRecovery.handleUnexpectedExit(error)
 }
 
 async function startRuntime() {
@@ -349,6 +373,7 @@ async function startRuntime() {
 
 async function restartRuntime() {
   if (restarting) return
+  runtimeRecovery?.reset()
   restarting = true
   try {
     await restartManagedRuntime({
@@ -374,6 +399,7 @@ if (!hasLock) {
   app.whenReady().then(async () => {
     await initializeLogging()
     await initializePreferences()
+    initializeRuntimeRecovery()
     await createWindow()
   }).catch((error) => {
     console.error(error)
@@ -391,6 +417,7 @@ if (!hasLock) {
     clearTimeout(backgroundUpdateTimer)
     backgroundUpdateTimer = undefined
     backgroundAbortController?.abort(new Error('Application is shutting down.'))
+    runtimeRecovery?.cancel()
     if (shutdownStarted || (harnessProcess === undefined && backgroundUpdatePromise === undefined)) return
     event.preventDefault()
     shutdownStarted = true
@@ -402,5 +429,6 @@ if (!hasLock) {
 }
 
 ipcMain.on('runtime:retry', () => {
+  runtimeRecovery?.reset()
   void startRuntime()
 })
