@@ -29,6 +29,7 @@ nsis:
 linux:
   executableName: deepseek-harness-desktop
   category: Development
+  maintainer: VickylastShao <22924324+VickylastShao@users.noreply.github.com>
   syncDesktopName: true
   target:
     - target: AppImage

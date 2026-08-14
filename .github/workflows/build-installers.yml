@@ -64,7 +64,7 @@ jobs:
         run: node scripts/configure-runtime-channel.cjs "${{ env.RUNTIME_CHANNEL }}"
       - name: Build platform installer
         if: github.event_name != 'schedule'
-        run: npm run dist -- ${{ matrix.builder_args }}
+        run: npm run dist -- ${{ matrix.builder_args }} --publish never
       - name: Verify the packaged seed and real web server
         if: github.event_name != 'schedule'
         run: npm run verify:packaged -- "${{ matrix.resources_path }}"
