@@ -7,14 +7,14 @@ const strings = zh ? {
   notifications: '桌面通知', openAtLogin: '开机启动', localData: '本地数据', dataDirectory: '应用数据', logDirectory: '桌面日志', open: '打开',
   operations: '运行状态', operationsHint: '受管本地 Harness 进程的实时状态', endpoint: '本地端点', runtimeSource: '运行时来源', process: '进程',
   taskEvents: '任务事件流', activeTasks: '活动任务', recovery: '崩溃恢复', system: '系统', diagnostics: '诊断',
-  diagnosticsHint: '导出有界且已脱敏的支持包，不包含会话、凭据或工作区文件。', exportDiagnostics: '导出诊断包', bundled: '安装包内置', managed: '后台更新版本', stopped: '未运行',
+  diagnosticsHint: '导出有界且按模式脱敏的日志与状态；不会复制会话、凭据库或工作区文件。', exportDiagnostics: '导出诊断包', bundled: '安装包内置', managed: '后台更新版本', stopped: '未运行',
 } : {
   title: 'Desktop Control Center', subtitle: 'Runtime health, updates, diagnostics, and local preferences', desktop: 'Desktop shell', checkDesktop: 'Check desktop update',
   checkHarness: 'Check Harness update', restart: 'Restart', preferences: 'Preferences', closeToTray: 'Keep running when the window closes',
   notifications: 'Desktop notifications', openAtLogin: 'Start at login', localData: 'Local data', dataDirectory: 'Application data', logDirectory: 'Desktop logs', open: 'Open',
   operations: 'Operations', operationsHint: 'Live state from the managed local Harness process', endpoint: 'Local endpoint', runtimeSource: 'Runtime source', process: 'Process',
   taskEvents: 'Task event stream', activeTasks: 'Active tasks', recovery: 'Crash recovery', system: 'System', diagnostics: 'Diagnostics',
-  diagnosticsHint: 'Export a bounded, redacted support bundle without sessions, credentials, or workspace files.', exportDiagnostics: 'Export diagnostic bundle', bundled: 'Bundled', managed: 'Background update', stopped: 'Stopped',
+  diagnosticsHint: 'Export bounded, pattern-redacted logs and state; no session, credential-store, or workspace files are copied.', exportDiagnostics: 'Export diagnostic bundle', bundled: 'Bundled', managed: 'Background update', stopped: 'Stopped',
 }
 for (const element of document.querySelectorAll('[data-i18n]')) element.textContent = strings[element.dataset.i18n]
 const $ = selector => document.querySelector(selector)

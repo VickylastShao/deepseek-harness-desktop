@@ -25,6 +25,9 @@ function redactDiagnosticText(value, options = {}) {
   }
 
   result = result
+    .replace(/-----BEGIN ([A-Z0-9 ]*PRIVATE KEY)-----[\s\S]*?-----END \1-----/gu, '<REDACTED_PRIVATE_KEY>')
+    .replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/giu, '$1<REDACTED>@')
+    .replace(/([?&](?:api[_-]?key|token|secret|password|authorization)=)[^&#\s]+/giu, '$1<REDACTED>')
     .replace(/(Bearer\s+)[A-Za-z0-9._~+/=-]+/giu, '$1<REDACTED>')
     .replace(
       /(["'](?:api[_-]?key|token|secret|password|authorization)["']\s*:\s*)("[^"\r\n]*"|'[^'\r\n]*'|[^,\s}\r\n]+)/giu,
@@ -35,6 +38,8 @@ function redactDiagnosticText(value, options = {}) {
       '$1<REDACTED>',
     )
     .replace(/\bsk-[A-Za-z0-9_-]{8,}\b/gu, '<REDACTED>')
+    .replace(/\bgh[pousr]_[A-Za-z0-9]{20,}\b/gu, '<REDACTED>')
+    .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/gu, '<REDACTED>')
   return result
 }
 
@@ -84,8 +89,8 @@ async function createDiagnosticBundle(options) {
       '- diagnostic-report.json: allowlisted application and runtime state',
       '- desktop.log: bounded and redacted desktop/Harness log tail',
       '',
-      'The bundle does not include API credentials, Harness sessions, workspace files, or the DSH credential store.',
-      'Review the files before sharing them publicly.',
+      'No Harness session, workspace, or credential-store files are copied into this bundle.',
+      'The included log tail is pattern-redacted; review all three files before sharing them publicly.',
       '',
     ].join('\n')
     await writeFile(path.join(staging, 'README.txt'), readme, 'utf8')

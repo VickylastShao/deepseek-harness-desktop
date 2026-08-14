@@ -12,18 +12,27 @@ const {
 } = require('../src/diagnostic-bundle.cjs')
 
 test('diagnostic redaction removes known paths and credential-shaped values', () => {
+  const githubToken = `ghp_${'a'.repeat(30)}`
+  const jwt = ['eyJhbGciOiJIUzI1NiJ9', 'c2VjcmV0', 'c2lnbmF0dXJl'].join('.')
   const value = [
     'workspace=/home/alice/private/project',
     'DEEPSEEK_API_KEY=sk-supersecret123456',
     'Authorization: Bearer abc.def.ghi',
     '"token": "private-token-value"',
+    'remote=https://alice:basic-auth-secret@example.com/path?api_key=query-secret',
+    `jwt=${jwt}`,
+    `github=${githubToken}`,
+    '-----BEGIN PRIVATE KEY-----',
+    'private-key-material',
+    '-----END PRIVATE KEY-----',
   ].join('\n')
 
   const redacted = redactDiagnosticText(value, {
     paths: [{ value: '/home/alice', replacement: '<HOME>' }],
   })
 
-  assert.doesNotMatch(redacted, /alice|supersecret|abc\.def|private-token/u)
+  assert.doesNotMatch(redacted, /alice|supersecret|abc\.def|private-token|basic-auth-secret|query-secret|c2VjcmV0|ghp_|private-key-material/u)
+  assert.ok(!redacted.includes(githubToken))
   assert.match(redacted, /<HOME>\/private\/project/u)
   assert.match(redacted, /DEEPSEEK_API_KEY=<REDACTED>/u)
   assert.match(redacted, /Bearer <REDACTED>/u)
