@@ -1,20 +1,28 @@
 'use strict'
 
 const ENGLISH_LABELS = Object.freeze({
+  checkUpdates: 'Check for Harness Updates',
+  checkingUpdates: 'Checking for Harness updates…',
   logs: 'Open Log Folder',
   open: 'Open DeepSeek Harness',
+  pendingUpdate: (current, pending) => `Harness ${current} · ${pending} ready after restart`,
   quit: 'Quit',
   restart: 'Restart Harness',
+  runtimeVersion: version => `Harness ${version}`,
   stillRunningBody: 'DeepSeek Harness is still running in the system tray.',
   stillRunningTitle: 'DeepSeek Harness Desktop',
   tooltip: 'DeepSeek Harness Desktop',
 })
 
 const CHINESE_LABELS = Object.freeze({
+  checkUpdates: '检查 Harness 更新',
+  checkingUpdates: '正在检查 Harness 更新……',
   logs: '打开日志目录',
   open: '打开 DeepSeek Harness',
+  pendingUpdate: (current, pending) => `Harness ${current} · 重启后启用 ${pending}`,
   quit: '彻底退出',
   restart: '重启 Harness',
+  runtimeVersion: version => `Harness ${version}`,
   stillRunningBody: 'DeepSeek Harness 仍在系统托盘中运行。',
   stillRunningTitle: 'DeepSeek Harness Desktop',
   tooltip: 'DeepSeek Harness Desktop',
@@ -50,11 +58,13 @@ class DesktopTrayController {
     this.onError = options.onError
     this.onQuit = options.onQuit
     this.onRestart = options.onRestart
+    this.onCheckUpdates = options.onCheckUpdates ?? (() => {})
     this.openPath = options.openPath
     this.trayIcon = options.trayIcon
     this.window = undefined
     this.tray = undefined
     this.closeNotificationShown = false
+    this.updateState = { phase: 'idle' }
     this.handleClose = event => this.hideOnClose(event)
     this.handleTrayClick = () => this.showWindow()
   }
@@ -67,16 +77,41 @@ class DesktopTrayController {
     const tray = this.createTray(this.trayIcon)
     this.tray = tray
     tray.setToolTip(this.labels.tooltip)
-    tray.setContextMenu(this.buildMenu([
+    this.rebuildMenu()
+    tray.on('click', this.handleTrayClick)
+    tray.on('double-click', this.handleTrayClick)
+  }
+
+  rebuildMenu() {
+    if (this.tray === undefined) return
+    const { currentVersion, pendingVersion, phase } = this.updateState
+    let statusLabel
+    if (currentVersion !== undefined && pendingVersion !== undefined) {
+      statusLabel = this.labels.pendingUpdate(currentVersion, pendingVersion)
+    } else if (currentVersion !== undefined) {
+      statusLabel = this.labels.runtimeVersion(currentVersion)
+    }
+    const checking = phase === 'checking' || phase === 'downloading'
+    this.tray.setContextMenu(this.buildMenu([
       { id: 'open', label: this.labels.open, click: () => this.showWindow() },
       { type: 'separator' },
+      ...(statusLabel === undefined ? [] : [{ id: 'runtime-status', label: statusLabel, enabled: false }]),
+      {
+        id: 'check-updates',
+        label: checking ? this.labels.checkingUpdates : this.labels.checkUpdates,
+        enabled: !checking && pendingVersion === undefined,
+        click: () => this.runAction(this.onCheckUpdates),
+      },
       { id: 'restart', label: this.labels.restart, click: () => this.runAction(this.onRestart) },
       { id: 'logs', label: this.labels.logs, click: () => this.openLogDirectory() },
       { type: 'separator' },
       { id: 'quit', label: this.labels.quit, click: () => this.onQuit() },
     ]))
-    tray.on('click', this.handleTrayClick)
-    tray.on('double-click', this.handleTrayClick)
+  }
+
+  setRuntimeUpdateState(state) {
+    this.updateState = { ...this.updateState, ...state }
+    this.rebuildMenu()
   }
 
   hideOnClose(event) {

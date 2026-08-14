@@ -39,6 +39,9 @@ let shutdownStarted = false
 let backgroundAbortController
 let backgroundUpdatePromise
 let backgroundUpdateTimer
+let activeRuntime
+let activeRuntimeStore
+let activeNodeTools
 let logFile
 let logDirectory
 let logQueue = Promise.resolve()
@@ -94,6 +97,7 @@ function initializeTray(window) {
     logDirectory: logDirectory ?? path.join(app.getPath('userData'), 'logs'),
     onError: error => writeLog('desktop', `${error.stack ?? error.message}\n`),
     onQuit: () => app.quit(),
+    onCheckUpdates: () => checkRuntimeUpdateNow(),
     onRestart: () => restartRuntime(),
     openPath: target => shell.openPath(target),
     trayIcon: createTrayImage(
@@ -153,9 +157,17 @@ async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore)
   const channelUrl = runtimeChannelUrl()
   if (channelUrl === '') {
     writeLog('updater', 'runtime update channel is not configured\n')
-    return true
+    trayController?.setRuntimeUpdateState({
+      phase: 'disabled',
+      currentVersion: currentRuntime.version,
+    })
+    return false
   }
   backgroundAbortController = new AbortController()
+  trayController?.setRuntimeUpdateState({
+    phase: 'checking',
+    currentVersion: currentRuntime.version,
+  })
   try {
     const updater = new RuntimeBundleUpdater({
       rootDir: runtimeStore.rootDir,
@@ -166,18 +178,53 @@ async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore)
     })
     const update = await updater.prepareLatest(currentRuntime.version, status => {
       writeLog('updater', `${status.phase}: ${status.message}\n`)
+      trayController?.setRuntimeUpdateState({
+        phase: status.phase,
+        currentVersion: currentRuntime.version,
+      })
     })
     if (update !== undefined && !quitting) {
       await runtimeStore.setPending(update)
       writeLog('updater', `staged ${update.version} for the next restart\n`)
+      trayController?.setRuntimeUpdateState({
+        phase: 'prepared',
+        currentVersion: currentRuntime.version,
+        pendingVersion: update.version,
+      })
       return true
     }
+    trayController?.setRuntimeUpdateState({
+      phase: 'current',
+      currentVersion: currentRuntime.version,
+      pendingVersion: undefined,
+    })
   } catch (error) {
-    if (!quitting) writeLog('updater', `background update failed: ${error.stack ?? error.message}\n`)
+    if (!quitting) {
+      writeLog('updater', `background update failed: ${error.stack ?? error.message}\n`)
+      trayController?.setRuntimeUpdateState({
+        phase: 'error',
+        currentVersion: currentRuntime.version,
+      })
+    }
   } finally {
     backgroundAbortController = undefined
   }
   return false
+}
+
+async function checkRuntimeUpdateNow() {
+  if (activeRuntime === undefined || activeNodeTools === undefined || activeRuntimeStore === undefined) return
+  clearTimeout(backgroundUpdateTimer)
+  backgroundUpdateTimer = undefined
+  const staged = await checkForBackgroundUpdate(activeRuntime, activeNodeTools, activeRuntimeStore)
+  if (!staged && !quitting) {
+    scheduleBackgroundUpdate(
+      activeRuntime,
+      activeNodeTools,
+      activeRuntimeStore,
+      updateDelayFromEnvironment('DSH_UPDATE_INTERVAL_MS', 6 * 60 * 60_000),
+    )
+  }
 }
 
 function updateDelayFromEnvironment(name, fallback) {
@@ -231,6 +278,14 @@ async function startRuntime() {
     })
     sendStatus({ phase: 'starting', message: '正在启动 DeepSeek Harness……' })
     const runtime = await runtimeStore.resolveStartupRuntime()
+    activeRuntime = runtime
+    activeRuntimeStore = runtimeStore
+    activeNodeTools = nodeTools
+    trayController?.setRuntimeUpdateState({
+      phase: 'idle',
+      currentVersion: runtime.version,
+      pendingVersion: undefined,
+    })
     if (quitting) return
 
     sendStatus({ phase: 'starting', message: `正在启动 DeepSeek Harness ${runtime.version}……` })

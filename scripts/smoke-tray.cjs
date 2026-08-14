@@ -33,6 +33,7 @@ async function main() {
     logDirectory: app.getPath('logs'),
     onError: error => { throw error },
     onQuit: () => {},
+    onCheckUpdates: async () => {},
     onRestart: async () => {},
     openPath: async () => '',
     trayIcon: createTrayImage(nativeImage, iconBuffer),

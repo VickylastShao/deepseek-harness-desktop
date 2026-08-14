@@ -71,6 +71,7 @@ function createHarness(options = {}) {
   const errors = []
   let menuTemplate
   let restartCount = 0
+  let updateCheckCount = 0
   let quitCount = 0
   const tray = new FakeTray()
   const window = new FakeWindow()
@@ -93,6 +94,9 @@ function createHarness(options = {}) {
     onQuit: () => {
       quitCount += 1
     },
+    onCheckUpdates: async () => {
+      updateCheckCount += 1
+    },
     onRestart: async () => {
       restartCount += 1
     },
@@ -112,6 +116,7 @@ function createHarness(options = {}) {
     quitCount: () => quitCount,
     restartCount: () => restartCount,
     tray,
+    updateCheckCount: () => updateCheckCount,
     window,
   }
 }
@@ -188,6 +193,47 @@ test('tray menu exposes restart, logs, and explicit quit actions', async () => {
   assert.equal(harness.restartCount(), 1)
   assert.deepEqual(harness.openedPaths, ['/application/logs'])
   assert.equal(harness.quitCount(), 1)
+})
+
+test('tray menu exposes runtime version and a manual update check', async () => {
+  const harness = createHarness()
+  harness.controller.setRuntimeUpdateState({
+    phase: 'current',
+    currentVersion: '0.1.0-rc.6',
+  })
+
+  const menu = harness.menuTemplate()
+  assert.equal(menu.find(item => item.id === 'runtime-status').label, 'Harness 0.1.0-rc.6')
+  await menu.find(item => item.id === 'check-updates').click()
+  assert.equal(harness.updateCheckCount(), 1)
+})
+
+test('pending runtime updates are visible and cannot be checked twice', () => {
+  const harness = createHarness({ locale: 'zh-CN' })
+  harness.controller.setRuntimeUpdateState({
+    phase: 'prepared',
+    currentVersion: '0.1.0-rc.6',
+    pendingVersion: '0.1.0-rc.7',
+  })
+
+  const menu = harness.menuTemplate()
+  assert.equal(
+    menu.find(item => item.id === 'runtime-status').label,
+    'Harness 0.1.0-rc.6 · 重启后启用 0.1.0-rc.7',
+  )
+  assert.equal(menu.find(item => item.id === 'check-updates').enabled, false)
+})
+
+test('checking state prevents duplicate update checks', () => {
+  const harness = createHarness()
+  harness.controller.setRuntimeUpdateState({
+    phase: 'checking',
+    currentVersion: '0.1.0-rc.6',
+  })
+
+  const item = harness.menuTemplate().find(entry => entry.id === 'check-updates')
+  assert.equal(item.label, 'Checking for Harness updates…')
+  assert.equal(item.enabled, false)
 })
 
 test('tray labels follow the application locale', () => {
