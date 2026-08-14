@@ -8,14 +8,16 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test",
-    "smoke:update": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-update.cjs"
+    "smoke:update": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-update.cjs",
+    "smoke:harness": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-harness.cjs"
   },
   "devDependencies": {
     "cross-env": "10.0.0",
     "electron": "43.4.0"
   },
   "dependencies": {
-    "@npmcli/arborist": "^10.0.2",
-    "semver": "^7.7.3"
+    "node": "24.18.1",
+    "npm": "12.0.2",
+    "semver": "7.7.3"
   }
 }

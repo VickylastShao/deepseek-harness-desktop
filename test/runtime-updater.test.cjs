@@ -6,6 +6,7 @@ const os = require('node:os')
 const path = require('node:path')
 const test = require('node:test')
 const {
+  INSTALLER_ID,
   PACKAGE_NAME,
   READY_MARKER,
   RuntimeUpdater,
@@ -45,7 +46,7 @@ test('fetchLatestManifest uses the official latest endpoint and validates integr
   assert.deepEqual(result, value)
 })
 
-test('strict update fails when the registry cannot be checked even if a cached version exists', async () => {
+test('a background update cycle fails closed when the registry cannot be checked', async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), 'dsh-updater-strict-'))
   const updater = new RuntimeUpdater({
     rootDir,
@@ -54,10 +55,10 @@ test('strict update fails when the registry cannot be checked even if a cached v
     installVersion: async () => assert.fail('installer must not run'),
     runSmokeTest: async () => assert.fail('smoke test must not run'),
   })
-  await assert.rejects(updater.ensureLatest(), /offline/)
+  await assert.rejects(updater.prepareLatest('1.2.3'), /offline/)
 })
 
-test('a verified current version is reused after the mandatory registry check', async () => {
+test('a verified newer version is reused after the background registry check', async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), 'dsh-updater-ready-'))
   const value = manifest('2.0.0')
   const versionDir = path.join(rootDir, 'versions', value.version)
@@ -66,6 +67,8 @@ test('a verified current version is reused after the mandatory registry check', 
     package: PACKAGE_NAME,
     version: value.version,
     integrity: value.dist.integrity,
+    installer: INSTALLER_ID,
+    node: process.versions.node,
   }))
 
   const updater = new RuntimeUpdater({
@@ -75,7 +78,7 @@ test('a verified current version is reused after the mandatory registry check', 
     installVersion: async () => assert.fail('installer must not run'),
     runSmokeTest: async () => assert.fail('smoke test must not run'),
   })
-  const result = await updater.ensureLatest()
+  const result = await updater.prepareLatest('1.9.0')
   assert.equal(result.binPath, harnessBin(versionDir))
   assert.equal(result.version, value.version)
 })
@@ -93,8 +96,8 @@ test('a new version is installed, verified, and atomically activated', async () 
     runSmokeTest: async (_runtime, binPath) => { smokeBin = binPath },
   })
 
-  const result = await updater.ensureLatest(status => statuses.push(status.phase))
-  assert.deepEqual(statuses, ['checking', 'installing', 'verifying', 'ready'])
+  const result = await updater.prepareLatest('3.0.0', status => statuses.push(status.phase))
+  assert.deepEqual(statuses, ['checking', 'installing', 'verifying', 'prepared'])
   assert.match(smokeBin, /staging/)
   assert.equal(result.version, value.version)
   assert.equal(result.binPath, harnessBin(path.join(rootDir, 'versions', value.version)))
@@ -110,4 +113,17 @@ test('Node engine incompatibility blocks activation', () => {
     () => assertNodeCompatibility({ version: '9.0.0', engines: { node: '>=30' } }, '24.18.1'),
     /requires Node >=30/,
   )
+})
+
+test('the current version performs a registry check but does not install', async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), 'dsh-updater-current-'))
+  const value = manifest('4.0.0')
+  const updater = new RuntimeUpdater({
+    rootDir,
+    runtimeExecutable: '/fake/node',
+    fetchManifest: async () => value,
+    installVersion: async () => assert.fail('installer must not run'),
+    runSmokeTest: async () => assert.fail('smoke test must not run'),
+  })
+  assert.equal(await updater.prepareLatest('4.0.0'), undefined)
 })
