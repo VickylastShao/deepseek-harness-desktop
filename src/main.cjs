@@ -14,6 +14,7 @@ const {
   shell,
   Tray,
 } = require('electron')
+const { suppressDefaultApplicationMenu } = require('./application-menu.cjs')
 const {
   createTrayImage,
   DesktopTrayController,
@@ -37,6 +38,8 @@ const {
   isAllowedRuntimeUrl,
   isSafeExternalUrl,
 } = require('./window-policy.cjs')
+
+suppressDefaultApplicationMenu(Menu)
 
 let mainWindow
 let desktopCenterWindow
