@@ -10,6 +10,11 @@ MIT License:
 The system tray artwork is derived from the DeepSeek Harness favicon in that
 project and is redistributed under the same MIT License.
 
+The desktop control center includes Manrope through
+`@fontsource-variable/manrope` 5.3.0. Copyright 2019 The Manrope Project
+Authors. The font is distributed under the SIL Open Font License 1.1; its full
+license text is retained in the packaged npm dependency.
+
 ## DeepSeek Harness license
 
 MIT License
