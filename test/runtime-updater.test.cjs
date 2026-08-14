@@ -9,10 +9,12 @@ const {
   INSTALLER_ID,
   PACKAGE_NAME,
   READY_MARKER,
+  RUNTIME_COMPATIBILITY_OVERRIDES,
   RuntimeUpdater,
   assertNodeCompatibility,
   fetchLatestManifest,
   harnessBin,
+  runtimePackageJson,
 } = require('../src/runtime-updater.cjs')
 
 function manifest(version = '1.2.3') {
@@ -44,6 +46,20 @@ test('fetchLatestManifest uses the official latest endpoint and validates integr
   })
   assert.equal(requested, 'https://registry.npmjs.org/@deepseek-ai%2Fdsh/latest')
   assert.deepEqual(result, value)
+})
+
+test('the broken rc.6 AWS release set uses a version-scoped compatibility override', () => {
+  assert.deepEqual(runtimePackageJson(manifest('0.1.0-rc.6')), {
+    name: 'deepseek-harness-desktop-runtime',
+    private: true,
+    dependencies: { [PACKAGE_NAME]: '0.1.0-rc.6' },
+    overrides: RUNTIME_COMPATIBILITY_OVERRIDES['0.1.0-rc.6'],
+  })
+  assert.deepEqual(runtimePackageJson(manifest('0.1.0-rc.7')), {
+    name: 'deepseek-harness-desktop-runtime',
+    private: true,
+    dependencies: { [PACKAGE_NAME]: '0.1.0-rc.7' },
+  })
 })
 
 test('a background update cycle fails closed when the registry cannot be checked', async () => {
