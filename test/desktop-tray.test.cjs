@@ -72,6 +72,7 @@ function createHarness(options = {}) {
   let menuTemplate
   let restartCount = 0
   let updateCheckCount = 0
+  let desktopUpdateCheckCount = 0
   let quitCount = 0
   const tray = new FakeTray()
   const window = new FakeWindow()
@@ -97,6 +98,9 @@ function createHarness(options = {}) {
     },
     onCheckUpdates: async () => {
       updateCheckCount += 1
+    },
+    onCheckDesktopUpdates: async () => {
+      desktopUpdateCheckCount += 1
     },
     onPreferenceChange: async patch => ({
       closeToTray: true,
@@ -126,6 +130,7 @@ function createHarness(options = {}) {
     restartCount: () => restartCount,
     tray,
     updateCheckCount: () => updateCheckCount,
+    desktopUpdateCheckCount: () => desktopUpdateCheckCount,
     window,
   }
 }
@@ -264,6 +269,31 @@ test('checking state prevents duplicate update checks', () => {
   const item = harness.menuTemplate().find(entry => entry.id === 'check-updates')
   assert.equal(item.label, 'Checking for Harness updates…')
   assert.equal(item.enabled, false)
+})
+
+test('signed builds expose desktop update state and manual checks', async () => {
+  const harness = createHarness()
+  harness.controller.setDesktopUpdateState({
+    enabled: true,
+    phase: 'current',
+    currentVersion: '0.1.9',
+  })
+
+  let menu = harness.menuTemplate()
+  assert.equal(menu.find(item => item.id === 'desktop-status').label, 'Desktop 0.1.9')
+  await menu.find(item => item.id === 'check-desktop-updates').click()
+  assert.equal(harness.desktopUpdateCheckCount(), 1)
+
+  harness.controller.setDesktopUpdateState({
+    phase: 'ready',
+    availableVersion: '0.2.0',
+  })
+  menu = harness.menuTemplate()
+  assert.equal(
+    menu.find(item => item.id === 'desktop-status').label,
+    'Desktop 0.1.9 · 0.2.0 ready after quit',
+  )
+  assert.equal(menu.find(item => item.id === 'check-desktop-updates').enabled, false)
 })
 
 test('tray preferences persist toggles and expose login startup only where supported', async () => {

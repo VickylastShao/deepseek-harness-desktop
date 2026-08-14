@@ -94,6 +94,9 @@ jobs:
         run: npm run package:runtime
       - name: Embed this repository's stable runtime channel
         run: node scripts/configure-runtime-channel.cjs "${{ env.RUNTIME_CHANNEL }}"
+      - name: Configure desktop application updates
+        if: github.event_name != 'schedule'
+        run: node scripts/configure-desktop-updates.cjs "${{ startsWith(github.ref, 'refs/tags/v') || inputs.signing_validation == true }}"
       - name: Build and require platform-signed installer
         if: >-
           github.event_name != 'schedule' &&
@@ -197,6 +200,9 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "${{ matrix.app_path }}"
           spctl --assess --type execute --verbose=4 "${{ matrix.app_path }}"
           xcrun stapler validate "${{ matrix.app_path }}"
+      - name: Prepare desktop update metadata from final artifacts
+        if: github.event_name != 'schedule'
+        run: node scripts/desktop-update-metadata.cjs prepare release "${{ matrix.id }}" update-metadata
       - name: Write installer checksums
         if: github.event_name != 'schedule'
         run: node scripts/write-checksums.cjs release release/SHA256SUMS-${{ matrix.id }}.txt
@@ -213,6 +219,7 @@ jobs:
             release/*.dmg
             release/*.zip
             release/SHA256SUMS-*.txt
+            update-metadata/*.yml
 
   publish-runtime-channel:
     if: inputs.signing_validation != true
@@ -247,13 +254,18 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@v4
+      - name: Install metadata merger dependencies
+        run: npm ci --omit=dev --no-audit --no-fund
       - uses: actions/download-artifact@v4
         with:
           pattern: deepseek-harness-desktop-*
           path: release-input
           merge-multiple: true
+      - name: Merge cross-platform desktop update metadata
+        run: node scripts/desktop-update-metadata.cjs merge release-input/update-metadata release-input/release
       - name: Publish tagged installers
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/SHA256SUMS-*.txt --generate-notes --repo "${GITHUB_REPOSITORY}" --verify-tag
+        run: gh release create "${GITHUB_REF_NAME}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/latest*.yml release-input/release/SHA256SUMS-*.txt --generate-notes --repo "${GITHUB_REPOSITORY}" --verify-tag

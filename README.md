@@ -55,6 +55,7 @@ that setup into a conventional application:
 | Local-only bridge | Loads only the Harness server started on a random `127.0.0.1` port. |
 | Staged Harness updates | Downloads and verifies a newer runtime while the current session keeps running. |
 | Safe next-launch activation | Switches to the staged runtime on the next normal start, with the bundled runtime kept as a fallback. |
+| Desktop app updates | Formal tagged builds download newer shell releases in the background and install them after a normal quit. |
 | Bounded crash recovery | Restarts Harness after an unexpected exit with backoff, then stops after repeated failures instead of looping forever. |
 | Native installers | Produces Windows, Ubuntu, Intel macOS, and Apple Silicon macOS packages. |
 
@@ -123,7 +124,7 @@ them.
 ## Updates that do not interrupt your session
 
 Launching the app never waits for a network request. Thirty seconds after
-Harness starts successfully, the updater checks the desktop runtime channel;
+Harness starts successfully, the Harness updater checks the runtime channel;
 when no update is available, it checks again every six hours.
 
 If a newer Harness runtime is published for the current operating system and
@@ -137,8 +138,14 @@ CPU architecture, the app downloads it in the background and verifies:
 
 The running process is never replaced. A verified update is staged and becomes
 active on the next normal launch. A failed download or integrity check leaves
-the current runtime untouched. This channel updates **DeepSeek Harness**, not
-the Electron shell; new desktop-app releases remain available on GitHub.
+the current runtime untouched.
+
+Formal tagged packages also check GitHub Releases for a newer **desktop shell**
+60 seconds after Harness becomes ready. The platform updater downloads a newer
+NSIS, AppImage/DEB, or signed macOS update without interrupting the session. A
+downloaded shell update is installed only after the user normally quits the
+application; the next launch uses the new version. Development and unsigned
+manual builds keep this channel disabled.
 
 ## Security and local data
 
@@ -189,6 +196,8 @@ Generated runtime and installer directories (`runtime-seed/`,
 | `DSH_RUNTIME_CHANNEL_URL` | Override the HTTPS runtime-channel manifest. | Embedded release channel |
 | `DSH_UPDATE_DELAY_MS` | Delay before the first background update check. | `30000` |
 | `DSH_UPDATE_INTERVAL_MS` | Interval between later checks when no update is staged. | `21600000` |
+| `DSH_DESKTOP_UPDATE_DELAY_MS` | Delay before the desktop shell checks its release channel. | `60000` |
+| `DSH_DESKTOP_UPDATE_INTERVAL_MS` | Interval between later desktop shell checks. | `21600000` |
 | `DSH_DESKTOP_WORKSPACE` | Initial Harness working directory. | User home directory |
 | `DSH_RUNTIME_SEED` | Override the bundled seed for development and testing. | Packaged seed |
 

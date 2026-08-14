@@ -35,6 +35,7 @@ async function main() {
     onError: error => { throw error },
     onQuit: () => {},
     onCheckUpdates: async () => {},
+    onCheckDesktopUpdates: async () => {},
     onPreferenceChange: async patch => ({
       closeToTray: true,
       notifications: true,

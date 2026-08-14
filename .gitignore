@@ -4,5 +4,6 @@ release/
 build/
 runtime-seed/
 runtime-release/
+update-metadata/
 *.log
 .DS_Store

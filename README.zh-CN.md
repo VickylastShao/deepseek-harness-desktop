@@ -41,6 +41,7 @@ npx @deepseek-ai/dsh web
 | 本机访问边界 | 只加载应用启动的随机 `127.0.0.1` 端口。 |
 | 后台暂存更新 | 当前会话继续运行时下载并校验较新的 Harness。 |
 | 下次启动切换 | 正常重启时启用暂存版本，并保留安装包内运行时作为回退。 |
+| 桌面外壳更新 | 正式标签构建在后台下载新版桌面外壳，正常退出后安装。 |
 | 有界异常恢复 | Harness 意外退出后按退避策略恢复；连续失败时停止，避免无限重启。 |
 | 原生安装包 | 提供 Windows、Ubuntu、Intel macOS 和 Apple Silicon macOS 构建。 |
 
@@ -94,7 +95,7 @@ Harness 成功启动后若意外退出，桌面外壳会分别等待 1 秒、5 �
 
 发现适用于当前操作系统和 CPU 架构的新版本后，应用在后台下载，并校验 HTTPS、文件大小、SHA-256、npm integrity、Node.js 版本、Harness CLI 和平台原生 `node-pty` 模块。当前进程不会被替换，校验通过的版本只写入 pending，并在下一次正常启动时启用。网络或完整性校验失败不会影响当前版本。
 
-该通道只更新 **DeepSeek Harness 运行时**，不更新 Electron 外壳；新的桌面应用版本仍通过 GitHub Releases 发布。
+正式标签安装包还会在 Harness 就绪 60 秒后检查 GitHub Releases 中的新版 **Electron 桌面外壳**。新版 NSIS、AppImage/DEB 或已签名的 macOS 更新会在后台下载，不中断当前会话；只有用户正常退出应用后才会安装，下次启动即使用新版本。开发构建和无签名的手动构建默认关闭该通道。
 
 ## 安全与本地数据边界
 
@@ -135,6 +136,8 @@ npm run capture:screenshots
 | `DSH_RUNTIME_CHANNEL_URL` | 覆盖 HTTPS 运行时更新清单。 | 安装包内置通道 |
 | `DSH_UPDATE_DELAY_MS` | 首次后台检查延迟。 | `30000` |
 | `DSH_UPDATE_INTERVAL_MS` | 未暂存更新时后续检查间隔。 | `21600000` |
+| `DSH_DESKTOP_UPDATE_DELAY_MS` | 桌面外壳首次检查延迟。 | `60000` |
+| `DSH_DESKTOP_UPDATE_INTERVAL_MS` | 桌面外壳后续检查间隔。 | `21600000` |
 | `DSH_DESKTOP_WORKSPACE` | Harness 初始工作目录。 | 用户主目录 |
 | `DSH_RUNTIME_SEED` | 仅供开发测试，覆盖内置 seed。 | 安装包 seed |
 

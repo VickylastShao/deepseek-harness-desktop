@@ -2,7 +2,9 @@
 
 const ENGLISH_LABELS = Object.freeze({
   checkUpdates: 'Check for Harness Updates',
+  checkDesktopUpdates: 'Check for Desktop Updates',
   checkingUpdates: 'Checking for Harness updates…',
+  checkingDesktopUpdates: 'Checking for desktop updates…',
   closeToTray: 'Keep Running When Window Closes',
   logs: 'Open Log Folder',
   notifications: 'Desktop Notifications',
@@ -10,9 +12,11 @@ const ENGLISH_LABELS = Object.freeze({
   openAtLogin: 'Start at Login',
   preferences: 'Preferences',
   pendingUpdate: (current, pending) => `Harness ${current} · ${pending} ready after restart`,
+  pendingDesktopUpdate: (current, pending) => `Desktop ${current} · ${pending} ready after quit`,
   quit: 'Quit',
   restart: 'Restart Harness',
   runtimeVersion: version => `Harness ${version}`,
+  desktopVersion: version => `Desktop ${version}`,
   stillRunningBody: 'DeepSeek Harness is still running in the system tray.',
   stillRunningTitle: 'DeepSeek Harness Desktop',
   tooltip: 'DeepSeek Harness Desktop',
@@ -20,7 +24,9 @@ const ENGLISH_LABELS = Object.freeze({
 
 const CHINESE_LABELS = Object.freeze({
   checkUpdates: '检查 Harness 更新',
+  checkDesktopUpdates: '检查桌面应用更新',
   checkingUpdates: '正在检查 Harness 更新……',
+  checkingDesktopUpdates: '正在检查桌面应用更新……',
   closeToTray: '关闭窗口后继续运行',
   logs: '打开日志目录',
   notifications: '桌面通知',
@@ -28,9 +34,11 @@ const CHINESE_LABELS = Object.freeze({
   openAtLogin: '开机启动',
   preferences: '偏好设置',
   pendingUpdate: (current, pending) => `Harness ${current} · 重启后启用 ${pending}`,
+  pendingDesktopUpdate: (current, pending) => `桌面应用 ${current} · 退出后安装 ${pending}`,
   quit: '彻底退出',
   restart: '重启 Harness',
   runtimeVersion: version => `Harness ${version}`,
+  desktopVersion: version => `桌面应用 ${version}`,
   stillRunningBody: 'DeepSeek Harness 仍在系统托盘中运行。',
   stillRunningTitle: 'DeepSeek Harness Desktop',
   tooltip: 'DeepSeek Harness Desktop',
@@ -68,6 +76,7 @@ class DesktopTrayController {
     this.onQuit = options.onQuit
     this.onRestart = options.onRestart
     this.onCheckUpdates = options.onCheckUpdates ?? (() => {})
+    this.onCheckDesktopUpdates = options.onCheckDesktopUpdates ?? (() => {})
     this.onPreferenceChange = options.onPreferenceChange ?? (async () => this.preferences)
     this.openPath = options.openPath
     this.trayIcon = options.trayIcon
@@ -81,6 +90,7 @@ class DesktopTrayController {
       ...options.preferences,
     }
     this.updateState = { phase: 'idle' }
+    this.desktopUpdateState = { enabled: false, phase: 'disabled' }
     this.handleClose = event => this.hideOnClose(event)
     this.handleTrayClick = () => this.showWindow()
   }
@@ -101,6 +111,7 @@ class DesktopTrayController {
   rebuildMenu() {
     if (this.tray === undefined) return
     const { currentVersion, pendingVersion, phase } = this.updateState
+    const desktop = this.desktopUpdateState
     let statusLabel
     if (currentVersion !== undefined && pendingVersion !== undefined) {
       statusLabel = this.labels.pendingUpdate(currentVersion, pendingVersion)
@@ -118,6 +129,23 @@ class DesktopTrayController {
         enabled: !checking && pendingVersion === undefined,
         click: () => this.runAction(this.onCheckUpdates),
       },
+      ...(desktop.enabled ? [
+        {
+          id: 'desktop-status',
+          label: desktop.availableVersion === undefined
+            ? this.labels.desktopVersion(desktop.currentVersion)
+            : this.labels.pendingDesktopUpdate(desktop.currentVersion, desktop.availableVersion),
+          enabled: false,
+        },
+        {
+          id: 'check-desktop-updates',
+          label: desktop.phase === 'checking'
+            ? this.labels.checkingDesktopUpdates
+            : this.labels.checkDesktopUpdates,
+          enabled: !['checking', 'downloading', 'ready'].includes(desktop.phase),
+          click: () => this.runAction(this.onCheckDesktopUpdates),
+        },
+      ] : []),
       { id: 'restart', label: this.labels.restart, click: () => this.runAction(this.onRestart) },
       { id: 'logs', label: this.labels.logs, click: () => this.openLogDirectory() },
       {
@@ -154,6 +182,11 @@ class DesktopTrayController {
 
   setRuntimeUpdateState(state) {
     this.updateState = { ...this.updateState, ...state }
+    this.rebuildMenu()
+  }
+
+  setDesktopUpdateState(state) {
+    this.desktopUpdateState = { ...this.desktopUpdateState, ...state }
     this.rebuildMenu()
   }
 

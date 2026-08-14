@@ -18,6 +18,7 @@ const {
   DesktopTrayController,
   trayLabels,
 } = require('./desktop-tray.cjs')
+const { DesktopAppUpdater } = require('./desktop-app-updater.cjs')
 const {
   applyLoginItemPreference,
   DesktopPreferencesStore,
@@ -54,6 +55,7 @@ let logQueue = Promise.resolve()
 let preferences
 let preferencesStore
 let runtimeRecovery
+let desktopAppUpdater
 
 function bundledNodeTools() {
   const nodePackageDir = app.isPackaged
@@ -108,6 +110,7 @@ function initializeTray(window) {
     onError: error => writeLog('desktop', `${error.stack ?? error.message}\n`),
     onQuit: () => app.quit(),
     onCheckUpdates: () => checkRuntimeUpdateNow(),
+    onCheckDesktopUpdates: () => desktopAppUpdater?.checkNow(),
     onPreferenceChange: patch => updatePreferences(patch),
     onRestart: () => restartRuntime(),
     openPath: target => shell.openPath(target),
@@ -118,6 +121,28 @@ function initializeTray(window) {
     preferences,
   })
   trayController.initialize(window)
+  if (desktopAppUpdater !== undefined) {
+    trayController.setDesktopUpdateState(desktopAppUpdater.state)
+  }
+}
+
+function desktopUpdatesEnabled() {
+  const manifest = JSON.parse(readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8'))
+  return app.isPackaged && manifest.desktopUpdates === true
+}
+
+function initializeDesktopAppUpdater() {
+  const enabled = desktopUpdatesEnabled()
+  const updater = enabled ? require('electron-updater').autoUpdater : new (require('node:events').EventEmitter)()
+  desktopAppUpdater = new DesktopAppUpdater({
+    updater,
+    enabled,
+    currentVersion: app.getVersion(),
+    delayMs: updateDelayFromEnvironment('DSH_DESKTOP_UPDATE_DELAY_MS', 60_000),
+    intervalMs: updateDelayFromEnvironment('DSH_DESKTOP_UPDATE_INTERVAL_MS', 6 * 60 * 60_000),
+    onState: state => trayController?.setDesktopUpdateState(state),
+    onError: error => writeLog('desktop-updater', `${error.stack ?? error.message}\n`),
+  })
 }
 
 async function initializePreferences() {
@@ -355,6 +380,7 @@ async function startRuntime() {
     runtimeOrigin = new URL(url).origin
     writeLog('desktop', `loading ${runtimeOrigin}\n`)
     await mainWindow.loadURL(url)
+    desktopAppUpdater?.start()
     scheduleBackgroundUpdate(
       runtime,
       nodeTools,
@@ -400,6 +426,7 @@ if (!hasLock) {
     await initializeLogging()
     await initializePreferences()
     initializeRuntimeRecovery()
+    initializeDesktopAppUpdater()
     await createWindow()
   }).catch((error) => {
     console.error(error)
@@ -418,13 +445,14 @@ if (!hasLock) {
     backgroundUpdateTimer = undefined
     backgroundAbortController?.abort(new Error('Application is shutting down.'))
     runtimeRecovery?.cancel()
+    desktopAppUpdater?.stop()
     if (shutdownStarted || (harnessProcess === undefined && backgroundUpdatePromise === undefined)) return
     event.preventDefault()
     shutdownStarted = true
     void Promise.allSettled([
       harnessProcess?.stop(),
       backgroundUpdatePromise,
-    ]).finally(() => app.exit(0))
+    ]).finally(() => app.quit())
   })
 }
 

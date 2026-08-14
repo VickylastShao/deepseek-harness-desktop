@@ -4,6 +4,11 @@ asar: true
 npmRebuild: false
 directories:
   output: release
+electronUpdaterCompatibility: '>=2.16'
+publish:
+  provider: github
+  owner: VickylastShao
+  repo: deepseek-harness-desktop
 files:
   - src/**/*
   - assets/**/*

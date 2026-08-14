@@ -18,6 +18,8 @@ The desktop wrapper can make the following network requests:
 
 - It checks this repository's HTTPS runtime channel and may download a verified
   DeepSeek Harness runtime update from GitHub Releases.
+- Formal release builds check this repository's GitHub Releases for desktop
+  application updates and may download the matching platform package.
 - The upstream Harness process may communicate with model providers and services
   used by its plugins or configuration. Prompts, workspace context, and tool
   results sent through those services are governed by their own policies.
