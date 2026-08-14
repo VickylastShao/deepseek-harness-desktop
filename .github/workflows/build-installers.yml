@@ -1,0 +1,127 @@
+name: Build installers and runtime channel
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 19 * * *'
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: linux-x64
+            os: ubuntu-24.04
+            builder_args: --linux --x64
+            resources_path: release/linux-unpacked/resources
+          - id: win32-x64
+            os: windows-2025
+            builder_args: --win --x64
+            resources_path: release/win-unpacked/resources
+          - id: darwin-x64
+            os: macos-15-intel
+            builder_args: --mac --x64
+            resources_path: release/mac/DeepSeek Harness Desktop.app/Contents/Resources
+          - id: darwin-arm64
+            os: macos-15
+            builder_args: --mac --arm64
+            resources_path: release/mac-arm64/DeepSeek Harness Desktop.app/Contents/Resources
+    runs-on: ${{ matrix.os }}
+    env:
+      DSH_NPM_REGISTRY: https://registry.npmjs.org/
+      NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
+      RUNTIME_CHANNEL: https://github.com/${{ github.repository }}/releases/download/runtime-channel/runtime-channel.json
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.1
+          cache: npm
+      - name: Install Linux native build prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y build-essential python3
+      - name: Install desktop build dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run unit tests
+        run: npm test
+      - name: Build and verify the native Harness runtime
+        run: npm run prepare:seed
+      - name: Verify the real Harness web server
+        run: npm run smoke:harness
+        env:
+          DSH_RUNTIME_TEST_ROOT: build/runtime-cache/${{ matrix.id }}
+      - name: Package the platform runtime update
+        run: npm run package:runtime
+      - name: Embed this repository's stable runtime channel
+        run: node scripts/configure-runtime-channel.cjs "${{ env.RUNTIME_CHANNEL }}"
+      - name: Build platform installer
+        if: github.event_name != 'schedule'
+        run: npm run dist -- ${{ matrix.builder_args }}
+      - name: Verify the packaged seed and real web server
+        if: github.event_name != 'schedule'
+        run: npm run verify:packaged -- "${{ matrix.resources_path }}"
+      - name: Write installer checksums
+        if: github.event_name != 'schedule'
+        run: node scripts/write-checksums.cjs release release/SHA256SUMS-${{ matrix.id }}.txt
+      - name: Upload platform deliverables
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepseek-harness-desktop-${{ matrix.id }}
+          if-no-files-found: error
+          path: |
+            runtime-release/*
+            release/*.exe
+            release/*.AppImage
+            release/*.deb
+            release/*.dmg
+            release/*.zip
+            release/SHA256SUMS-*.txt
+
+  publish-runtime-channel:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: deepseek-harness-desktop-*
+          path: release-input
+          merge-multiple: true
+      - name: Merge platform runtime manifests
+        run: node scripts/merge-runtime-channel.cjs release-input release-input/runtime-channel.json
+        env:
+          RUNTIME_RELEASE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-channel/
+          RUNTIME_REQUIRED_KEYS: linux-x64,win32-x64,darwin-x64,darwin-arm64
+      - name: Create or update stable runtime release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view runtime-channel >/dev/null 2>&1; then
+            gh release create runtime-channel --title "DeepSeek Harness Runtime Channel" --notes "Platform-native runtime bundles used by the desktop background updater."
+          fi
+          gh release upload runtime-channel release-input/*.tgz release-input/runtime-channel.json --clobber
+
+  publish-installers:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: deepseek-harness-desktop-*
+          path: release-input
+          merge-multiple: true
+      - name: Publish tagged installers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" release-input/*.exe release-input/*.AppImage release-input/*.deb release-input/*.dmg release-input/*.zip release-input/SHA256SUMS-*.txt --generate-notes

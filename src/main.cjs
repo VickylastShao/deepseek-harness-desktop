@@ -5,8 +5,8 @@ const { readFileSync } = require('node:fs')
 const { mkdir, appendFile } = require('node:fs/promises')
 const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const { HarnessProcess } = require('./harness-process.cjs')
+const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
-const { RuntimeUpdater } = require('./runtime-updater.cjs')
 const {
   createWindowOptions,
   isAllowedRuntimeUrl,
@@ -26,14 +26,24 @@ let logFile
 let logQueue = Promise.resolve()
 
 function bundledNodeTools() {
-  const nodePackageDir = path.join(app.getAppPath(), 'node_modules', 'node')
-  const npmPackageDir = path.join(app.getAppPath(), 'node_modules', 'npm')
+  const nodePackageDir = app.isPackaged
+    ? path.join(process.resourcesPath, 'node-runtime')
+    : path.join(app.getAppPath(), 'node_modules', 'node')
   const manifest = JSON.parse(readFileSync(path.join(nodePackageDir, 'package.json'), 'utf8'))
   return {
     executable: path.join(nodePackageDir, 'bin', process.platform === 'win32' ? 'node.exe' : 'node'),
-    npmCliPath: path.join(npmPackageDir, 'bin', 'npm-cli.js'),
     version: manifest.version,
   }
+}
+
+function runtimeChannelUrl() {
+  if (process.env.DSH_RUNTIME_CHANNEL_URL !== undefined) {
+    return process.env.DSH_RUNTIME_CHANNEL_URL.trim()
+  }
+  const desktopManifest = JSON.parse(readFileSync(path.join(app.getAppPath(), 'package.json'), 'utf8'))
+  return typeof desktopManifest.runtimeChannel === 'string'
+    ? desktopManifest.runtimeChannel.trim()
+    : ''
 }
 
 function writeLog(source, value) {
@@ -42,6 +52,16 @@ function writeLog(source, value) {
   logQueue = logQueue
     .then(() => appendFile(logFile, line.endsWith('\n') ? line : `${line}\n`, 'utf8'))
     .catch(error => console.error('Failed to write desktop log:', error))
+}
+
+async function initializeLogging() {
+  const logDir = path.join(app.getPath('userData'), 'logs')
+  await mkdir(logDir, { recursive: true })
+  logFile = path.join(logDir, 'desktop.log')
+  writeLog(
+    'desktop',
+    `launcher ${app.getVersion()}, Electron ${process.versions.electron}, Node ${process.versions.node}\n`,
+  )
 }
 
 function sendStatus(status) {
@@ -81,14 +101,18 @@ async function showFailure(error) {
 
 async function checkForBackgroundUpdate(currentRuntime, nodeTools, runtimeStore) {
   if (backgroundAbortController !== undefined || quitting) return false
+  const channelUrl = runtimeChannelUrl()
+  if (channelUrl === '') {
+    writeLog('updater', 'runtime update channel is not configured\n')
+    return true
+  }
   backgroundAbortController = new AbortController()
   try {
-    const updater = new RuntimeUpdater({
+    const updater = new RuntimeBundleUpdater({
       rootDir: runtimeStore.rootDir,
       runtimeExecutable: nodeTools.executable,
-      npmCliPath: nodeTools.npmCliPath,
       nodeVersion: nodeTools.version,
-      registry: process.env.DSH_NPM_REGISTRY,
+      channelUrl,
       signal: backgroundAbortController.signal,
     })
     const update = await updater.prepareLatest(currentRuntime.version, status => {
@@ -205,7 +229,10 @@ if (!hasLock) {
     mainWindow.focus()
   })
 
-  app.whenReady().then(createWindow).catch((error) => {
+  app.whenReady().then(async () => {
+    await initializeLogging()
+    await createWindow()
+  }).catch((error) => {
     console.error(error)
     app.exit(1)
   })
@@ -234,10 +261,3 @@ if (!hasLock) {
 ipcMain.on('runtime:retry', () => {
   void startRuntime()
 })
-
-app.whenReady().then(async () => {
-  const logDir = path.join(app.getPath('userData'), 'logs')
-  await mkdir(logDir, { recursive: true })
-  logFile = path.join(logDir, 'desktop.log')
-  writeLog('desktop', `launcher ${app.getVersion()}, Electron ${process.versions.electron}, Node ${process.versions.node}\n`)
-}).catch(error => console.error('Failed to initialize desktop logging:', error))

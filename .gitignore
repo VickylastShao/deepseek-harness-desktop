@@ -1,6 +1,8 @@
 node_modules/
 dist/
 release/
+build/
+runtime-seed/
+runtime-release/
 *.log
 .DS_Store
-
