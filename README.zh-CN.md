@@ -9,7 +9,7 @@
 像普通桌面软件一样运行 DeepSeek Harness：不需要常驻命令行窗口，也不要求用户预装 Node.js、npm 或本地编译工具链。
 
 <p align="center">
-  <img src="docs/images/desktop-web-ui.png" alt="DeepSeek Harness Desktop 中运行的 DeepSeek Harness 开发者预览界面" width="880">
+  <img src="docs/images/desktop-control-center.png" alt="DeepSeek Harness Desktop 控制中心，展示运行状态、更新、诊断和偏好设置" width="880">
 </p>
 
 > [!IMPORTANT]

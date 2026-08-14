@@ -10,7 +10,7 @@ Run DeepSeek Harness like a desktop app. No terminal window, system-wide
 Node.js installation, or local native build toolchain is required.
 
 <p align="center">
-  <img src="docs/images/desktop-web-ui.png" alt="DeepSeek Harness developer preview running inside DeepSeek Harness Desktop" width="880">
+  <img src="docs/images/desktop-control-center.png" alt="DeepSeek Harness Desktop control center showing runtime health, updates, diagnostics, and preferences" width="880">
 </p>
 
 > [!IMPORTANT]
