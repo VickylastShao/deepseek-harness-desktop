@@ -90,13 +90,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Install manifest merger dependencies
+        run: npm ci --omit=dev --no-audit --no-fund
       - uses: actions/download-artifact@v4
         with:
           pattern: deepseek-harness-desktop-*
           path: release-input
           merge-multiple: true
       - name: Merge platform runtime manifests
-        run: node scripts/merge-runtime-channel.cjs release-input release-input/runtime-channel.json
+        run: node scripts/merge-runtime-channel.cjs release-input/runtime-release release-input/runtime-channel.json
         env:
           RUNTIME_RELEASE_BASE_URL: https://github.com/${{ github.repository }}/releases/download/runtime-channel/
           RUNTIME_REQUIRED_KEYS: linux-x64,win32-x64,darwin-x64,darwin-arm64
@@ -108,7 +110,7 @@ jobs:
           if ! gh release view runtime-channel >/dev/null 2>&1; then
             gh release create runtime-channel --title "DeepSeek Harness Runtime Channel" --notes "Platform-native runtime bundles used by the desktop background updater."
           fi
-          gh release upload runtime-channel release-input/*.tgz release-input/runtime-channel.json --clobber
+          gh release upload runtime-channel release-input/runtime-release/*.tgz release-input/runtime-channel.json --clobber
 
   publish-installers:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -124,4 +126,4 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" release-input/*.exe release-input/*.AppImage release-input/*.deb release-input/*.dmg release-input/*.zip release-input/SHA256SUMS-*.txt --generate-notes
+        run: gh release create "${GITHUB_REF_NAME}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/SHA256SUMS-*.txt --generate-notes
