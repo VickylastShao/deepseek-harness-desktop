@@ -10,6 +10,10 @@ const manifest = require('../package.json')
 
 const projectRoot = path.resolve(__dirname, '..')
 
+function parseSha256Manifest(value) {
+  return value.trim().split(/\r?\n/u).map(line => line.split(/\s{2}/u))
+}
+
 function gifFrameDurations(buffer) {
   let offset = 13
   const packed = buffer[10]
@@ -201,7 +205,7 @@ test('README media reproducibility runs in a least-privilege workflow', async ()
 
 test('README media manifest binds every source and committed output by SHA-256', async () => {
   const manifestPath = path.join(projectRoot, 'docs', 'images', 'readme-media-inputs.sha256')
-  const manifestEntries = (await readFile(manifestPath, 'utf8')).trim().split('\n').map(line => line.split(/\s{2}/u))
+  const manifestEntries = parseSha256Manifest(await readFile(manifestPath, 'utf8'))
   const expectedPaths = [
     'scripts/generate-readme-media.py',
     'docs/media-requirements.txt',
@@ -218,6 +222,13 @@ test('README media manifest binds every source and committed output by SHA-256',
     const contents = await readFile(path.join(projectRoot, entryPath))
     assert.equal(createHash('sha256').update(contents).digest('hex'), digest)
   }
+})
+
+test('README media manifest parser accepts Windows CRLF checkouts', () => {
+  assert.deepEqual(parseSha256Manifest('abc  first.txt\r\ndef  second.txt\r\n'), [
+    ['abc', 'first.txt'],
+    ['def', 'second.txt'],
+  ])
 })
 
 test('pull requests run the product documentation contract tests', async () => {
