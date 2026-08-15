@@ -42,6 +42,7 @@ const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
 const { TaskCompletionMonitor } = require('./task-completion-monitor.cjs')
 const {
+  applyMainWindowAppearance,
   createDesktopCenterWindowOptions,
   createWindowOptions,
 } = require('./window-policy.cjs')
@@ -375,6 +376,11 @@ async function showDesktopCenter() {
   await window.loadFile(path.join(__dirname, 'renderer', 'desktop-center.html'))
 }
 
+function setMainWindowAppearance(phase) {
+  if (mainWindow === undefined || mainWindow.isDestroyed()) return
+  applyMainWindowAppearance(mainWindow, phase)
+}
+
 function showMainWindow() {
   if (mainWindow === undefined || mainWindow.isDestroyed()) {
     void createWindow()
@@ -431,6 +437,7 @@ async function showFailure(error) {
   setRuntimeLifecycle({ phase: 'error', error: error.message })
   const contents = mainRuntimeWebContents()
   if (mainWindow === undefined || mainWindow.isDestroyed() || contents === undefined) return
+  setMainWindowAppearance('loading')
   await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
   sendStatus({
     phase: 'error',
@@ -445,6 +452,7 @@ async function showRecoveryStatus({ attempt, delayMs, error }) {
   setRuntimeLifecycle({ phase: 'recovering', attempt, error: error.message })
   const contents = mainRuntimeWebContents()
   if (mainWindow === undefined || mainWindow.isDestroyed() || contents === undefined) return
+  setMainWindowAppearance('loading')
   await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
   sendStatus({
     phase: 'starting',
@@ -584,6 +592,7 @@ async function startRuntime() {
   setRuntimeLifecycle({ phase: 'starting', error: undefined })
 
   try {
+    setMainWindowAppearance('loading')
     await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
     const nodeTools = bundledNodeTools()
     const runtimeRoot = path.join(app.getPath('userData'), 'harness-runtime')
@@ -623,7 +632,9 @@ async function startRuntime() {
 
     runtimeOrigin = new URL(url).origin
     writeLog('desktop', `loading ${runtimeOrigin}\n`)
-    await contents.loadURL(url)
+    const loadRuntime = contents.loadURL(url)
+    setMainWindowAppearance('runtime')
+    await loadRuntime
     setRuntimeLifecycle({ phase: 'running', error: undefined })
     startTaskCompletionMonitor(runtimeOrigin)
     desktopAppUpdater?.start()
