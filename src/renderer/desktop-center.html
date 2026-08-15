@@ -10,7 +10,10 @@
   <body>
     <main>
       <header>
-        <img class="mark" src="../../assets/app-icon.svg" alt="" aria-hidden="true">
+        <picture class="mark" aria-hidden="true">
+          <source media="(prefers-color-scheme: dark)" srcset="../../assets/brand-whale-dark.png">
+          <img src="../../assets/brand-whale-light.png" alt="">
+        </picture>
         <div class="heading-copy"><h1 data-i18n="title">Desktop Control Center</h1><p data-i18n="subtitle">Runtime health, updates, diagnostics, and local preferences</p></div>
         <span id="overall-status" class="overall-status">—</span>
       </header>

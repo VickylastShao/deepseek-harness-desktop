@@ -6,14 +6,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.3"><img alt="Latest prerelease" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?include_prereleases&style=flat-square"></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.4"><img alt="Latest prerelease" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?include_prereleases&style=flat-square"></a>
   <a href="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml"><img alt="Native builds" src="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml/badge.svg"></a>
   <img alt="Windows, macOS, and Linux" src="https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-07111F?style=flat-square">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square"></a>
 </p>
 
 <p align="center">
-  <a href="https://vickylastshao.github.io/deepseek-harness-desktop/"><strong>Download v0.2.3</strong></a>
+  <a href="https://vickylastshao.github.io/deepseek-harness-desktop/"><strong>Download v0.2.4</strong></a>
   · <a href="#get-started">Get started</a>
   · <a href="docs/USER_GUIDE.md">User guide</a>
   · <a href="https://github.com/VickylastShao/deepseek-harness-desktop/discussions">Community</a>
@@ -53,17 +53,17 @@ The tour uses screenshots captured from the real Electron app:
 
 ## Download
 
-The current prerelease is **v0.2.3**. Use the normal installer for your platform;
+The current prerelease is **v0.2.4**. Use the normal installer for your platform;
 the alternative package is provided where available.
 
 | Platform | Recommended | Alternative | SHA-256 |
 | --- | --- | --- | --- |
-| Windows x64 | [Setup EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-win-x64.exe) | — | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-win32-x64.txt) |
-| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-linux-x86_64.AppImage) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-linux-x64.txt) |
-| macOS Apple Silicon | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-arm64.zip) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-darwin-arm64.txt) |
-| macOS Intel | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-x64.zip) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-darwin-x64.txt) |
+| Windows x64 | [Setup EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-win-x64.exe) | — | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/SHA256SUMS-win32-x64.txt) |
+| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-linux-x86_64.AppImage) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/SHA256SUMS-linux-x64.txt) |
+| macOS Apple Silicon | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-mac-arm64.zip) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/SHA256SUMS-darwin-arm64.txt) |
+| macOS Intel | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/DeepSeek-Harness-Desktop-0.2.4-mac-x64.zip) | [checksums](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.4/SHA256SUMS-darwin-x64.txt) |
 
-Release `v0.2.3` and earlier installers are unsigned. Windows SmartScreen and
+Release `v0.2.4` and earlier installers are unsigned. Windows SmartScreen and
 macOS Gatekeeper may show an unknown-publisher warning. See the
 [code-signing status](docs/CODE_SIGNING.md) before installing.
 
@@ -71,11 +71,11 @@ macOS Gatekeeper may show an unknown-publisher warning. See the
 <summary><strong>Verify a downloaded installer</strong></summary>
 
 ```powershell
-Get-FileHash .\DeepSeek-Harness-Desktop-0.2.3-win-x64.exe -Algorithm SHA256
+Get-FileHash .\DeepSeek-Harness-Desktop-0.2.4-win-x64.exe -Algorithm SHA256
 ```
 
 ```bash
-sha256sum DeepSeek-Harness-Desktop-0.2.3-linux-amd64.deb
+sha256sum DeepSeek-Harness-Desktop-0.2.4-linux-amd64.deb
 ```
 
 </details>

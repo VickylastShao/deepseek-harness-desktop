@@ -68,6 +68,12 @@ function createTrayImage(nativeImage, iconBuffer, platform = process.platform) {
   return image
 }
 
+function trayIconFilename(isDark, platform = process.platform) {
+  return platform === 'darwin' || isDark
+    ? 'tray-icon-dark.png'
+    : 'tray-icon-light.png'
+}
+
 class DesktopTrayController {
   constructor(options) {
     this.createTray = options.createTray
@@ -198,6 +204,11 @@ class DesktopTrayController {
     this.rebuildMenu()
   }
 
+  setIcon(icon) {
+    this.trayIcon = icon
+    this.tray?.setImage(icon)
+  }
+
   async updatePreference(key) {
     await this.runAction(async () => {
       this.preferences = await this.onPreferenceChange({
@@ -291,5 +302,6 @@ class DesktopTrayController {
 module.exports = {
   createTrayImage,
   DesktopTrayController,
+  trayIconFilename,
   trayLabels,
 }

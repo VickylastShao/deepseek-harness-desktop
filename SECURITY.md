@@ -34,7 +34,7 @@ published or the maintainer confirms that disclosure is appropriate.
 
 ## Release trust
 
-Release `v0.2.3` and earlier installers are unsigned. Verify published SHA-256
+Release `v0.2.4` and earlier installers are unsigned. Verify published SHA-256
 files and review the current [code-signing status](docs/CODE_SIGNING.md) before
 installing. A signature is described as active only after the release workflow
 has verified the final published bytes.

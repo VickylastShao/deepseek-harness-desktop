@@ -12,6 +12,7 @@ const {
   ipcMain,
   Menu,
   nativeImage,
+  nativeTheme,
   Notification,
   shell,
   Tray,
@@ -21,6 +22,7 @@ const { suppressDefaultApplicationMenu } = require('./application-menu.cjs')
 const {
   createTrayImage,
   DesktopTrayController,
+  trayIconFilename,
   trayLabels,
 } = require('./desktop-tray.cjs')
 const { DesktopAppUpdater } = require('./desktop-app-updater.cjs')
@@ -39,6 +41,7 @@ const {
 const { restartManagedRuntime } = require('./runtime-control.cjs')
 const { RuntimeRecoveryController } = require('./runtime-recovery.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
+const { prepareBundledRuntime } = require('./bundled-runtime.cjs')
 const { RuntimeStore } = require('./runtime-store.cjs')
 const { TaskCompletionMonitor } = require('./task-completion-monitor.cjs')
 const {
@@ -91,6 +94,30 @@ function bundledNodeTools() {
   }
 }
 
+function currentTrayImage() {
+  const isDark = process.platform === 'win32'
+    ? nativeTheme.shouldUseDarkColorsForSystemIntegratedUI
+    : nativeTheme.shouldUseDarkColors
+  return createTrayImage(
+    nativeImage,
+    readFileSync(path.join(
+      app.getAppPath(),
+      'assets',
+      trayIconFilename(isDark),
+    )),
+  )
+}
+
+function updateTrayArtwork() {
+  try {
+    trayController?.setIcon(currentTrayImage())
+  } catch (error) {
+    writeLog('desktop', `Failed to update tray artwork: ${error.stack ?? error.message}\n`)
+  }
+}
+
+const handleNativeThemeUpdated = () => updateTrayArtwork()
+
 function runtimeChannelUrl() {
   if (process.env.DSH_RUNTIME_CHANNEL_URL !== undefined) {
     return process.env.DSH_RUNTIME_CHANNEL_URL.trim()
@@ -141,10 +168,7 @@ function initializeTray(window) {
     onPreferenceChange: patch => updatePreferences(patch),
     onRestart: () => restartRuntime(),
     openPath: target => shell.openPath(target),
-    trayIcon: createTrayImage(
-      nativeImage,
-      readFileSync(path.join(app.getAppPath(), 'assets', 'tray-icon.png')),
-    ),
+    trayIcon: currentTrayImage(),
     preferences,
   })
   trayController.initialize(window)
@@ -596,10 +620,19 @@ async function startRuntime() {
     await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
     const nodeTools = bundledNodeTools()
     const runtimeRoot = path.join(app.getPath('userData'), 'harness-runtime')
+    const seedDir = process.env.DSH_RUNTIME_SEED
+      ?? (app.isPackaged ? undefined : path.join(app.getAppPath(), 'runtime-seed'))
     const runtimeStore = new RuntimeStore({
       rootDir: runtimeRoot,
-      seedDir: process.env.DSH_RUNTIME_SEED
-        ?? path.join(process.resourcesPath, 'runtime-seed'),
+      seedDir,
+      prepareSeed: seedDir === undefined
+        ? () => prepareBundledRuntime({
+          bundleDir: path.join(process.resourcesPath, 'runtime-bundle'),
+          rootDir: runtimeRoot,
+          runtimeExecutable: nodeTools.executable,
+          nodeVersion: nodeTools.version,
+        }, sendStatus)
+        : undefined,
       nodeVersion: nodeTools.version,
     })
     sendStatus({ phase: 'starting', message: '正在启动 DeepSeek Harness……' })
@@ -682,6 +715,7 @@ if (!hasLock) {
 
   app.whenReady().then(async () => {
     await initializeLogging()
+    nativeTheme.on('updated', handleNativeThemeUpdated)
     await initializePreferences()
     initializeRuntimeRecovery()
     initializeDesktopAppUpdater()
@@ -697,6 +731,7 @@ if (!hasLock) {
 
   app.on('before-quit', (event) => {
     quitting = true
+    nativeTheme.removeListener('updated', handleNativeThemeUpdated)
     trayController?.dispose()
     trayController = undefined
     clearTimeout(backgroundUpdateTimer)

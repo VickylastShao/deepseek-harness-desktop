@@ -17,10 +17,11 @@ files:
 extraResources:
   - from: node_modules/node
     to: node-runtime
-  - from: .
-    to: .
+  - from: build/packaged-runtime
+    to: runtime-bundle
     filter:
-      - 'runtime-seed/**/*'
+      - runtime.tgz
+      - runtime.json
 artifactName: DeepSeek-Harness-Desktop-${version}-${os}-${arch}.${ext}
 win:
   icon: assets/app-icon.svg

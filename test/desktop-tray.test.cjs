@@ -6,6 +6,7 @@ const test = require('node:test')
 const {
   createTrayImage,
   DesktopTrayController,
+  trayIconFilename,
   trayLabels,
 } = require('../src/desktop-tray.cjs')
 
@@ -62,6 +63,10 @@ class FakeTray extends EventEmitter {
 
   setContextMenu(menu) {
     this.menu = menu
+  }
+
+  setImage(icon) {
+    this.icon = icon
   }
 
   setToolTip(tooltip) {
@@ -382,6 +387,18 @@ test('tray artwork is rendered at a native platform size', () => {
   assert.equal(state.buffer, iconBuffer)
   assert.deepEqual(state.resize, { width: 18, height: 18, quality: 'best' })
   assert.equal(state.template, true)
+})
+
+test('tray artwork follows the system-integrated theme outside macOS', () => {
+  assert.equal(trayIconFilename(false, 'win32'), 'tray-icon-light.png')
+  assert.equal(trayIconFilename(true, 'win32'), 'tray-icon-dark.png')
+  assert.equal(trayIconFilename(false, 'linux'), 'tray-icon-light.png')
+  assert.equal(trayIconFilename(false, 'darwin'), 'tray-icon-dark.png')
+
+  const harness = createHarness()
+  const icon = { name: 'updated-theme-icon' }
+  harness.controller.setIcon(icon)
+  assert.equal(harness.tray.icon, icon)
 })
 
 test('empty tray artwork fails before the application starts', () => {
