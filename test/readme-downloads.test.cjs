@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('node:assert/strict')
+const { createHash } = require('node:crypto')
 const { access, readFile, stat } = require('node:fs/promises')
 const path = require('node:path')
 const test = require('node:test')
@@ -196,6 +197,27 @@ test('README media reproducibility runs in a least-privilege workflow', async ()
   assert.match(workflow, /runs-on: ubuntu-24\.04/u)
   assert.match(workflow, /python3 scripts\/generate-readme-media\.py --check/u)
   assert.doesNotMatch(workflow, /(?:pages|id-token): write/u)
+})
+
+test('README media manifest binds every source and committed output by SHA-256', async () => {
+  const manifestPath = path.join(projectRoot, 'docs', 'images', 'readme-media-inputs.sha256')
+  const manifestEntries = (await readFile(manifestPath, 'utf8')).trim().split('\n').map(line => line.split(/\s{2}/u))
+  const expectedPaths = [
+    'scripts/generate-readme-media.py',
+    'docs/media-requirements.txt',
+    'docs/app-icon.svg',
+    'docs/images/desktop-startup.png',
+    'docs/images/deepseek-harness-main.png',
+    'docs/images/desktop-control-center-hero.png',
+    'docs/images/social-preview.png',
+    'docs/images/desktop-workflow.gif',
+  ]
+
+  assert.deepEqual(manifestEntries.map(([, entryPath]) => entryPath), expectedPaths)
+  for (const [digest, entryPath] of manifestEntries) {
+    const contents = await readFile(path.join(projectRoot, entryPath))
+    assert.equal(createHash('sha256').update(contents).digest('hex'), digest)
+  }
 })
 
 test('pull requests run the product documentation contract tests', async () => {

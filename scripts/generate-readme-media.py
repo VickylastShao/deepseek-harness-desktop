@@ -14,7 +14,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import cairosvg
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageFont, ImageSequence
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +30,8 @@ MEDIA_INPUTS = (
     IMAGE_DIR / "deepseek-harness-main.png",
     IMAGE_DIR / "desktop-control-center-hero.png",
 )
+MEDIA_OUTPUTS = (SOCIAL_PREVIEW, WORKFLOW_GIF)
+MAX_PERCEPTUAL_DISTANCE = 8.0
 
 NAVY = (7, 17, 31)
 NAVY_LIGHT = (13, 36, 62)
@@ -193,20 +195,42 @@ def verify_outputs(social_preview: Path = SOCIAL_PREVIEW, workflow_gif: Path = W
         raise RuntimeError("Workflow GIF exceeds 5 MiB")
 
 
-def media_input_manifest() -> str:
+def media_manifest() -> str:
     return "".join(
         f"{hashlib.sha256(source.read_bytes()).hexdigest()}  {source.relative_to(PROJECT_ROOT).as_posix()}\n"
-        for source in MEDIA_INPUTS
+        for source in (*MEDIA_INPUTS, *MEDIA_OUTPUTS)
     )
+
+
+def perceptual_distance(first: Image.Image, second: Image.Image) -> float:
+    size = (64, 64)
+    left = first.convert("L").resize(size, Image.Resampling.LANCZOS)
+    right = second.convert("L").resize(size, Image.Resampling.LANCZOS)
+    histogram = ImageChops.difference(left, right).histogram()
+    return sum(value * count for value, count in enumerate(histogram)) / (size[0] * size[1])
+
+
+def verify_visual_match(generated: Path, committed: Path) -> None:
+    with Image.open(generated) as generated_image, Image.open(committed) as committed_image:
+        generated_frames = [frame.copy() for frame in ImageSequence.Iterator(generated_image)]
+        committed_frames = [frame.copy() for frame in ImageSequence.Iterator(committed_image)]
+    if len(generated_frames) != len(committed_frames):
+        raise RuntimeError(f"Frame count differs for {committed.relative_to(PROJECT_ROOT)}")
+    for index, (generated_frame, committed_frame) in enumerate(zip(generated_frames, committed_frames, strict=True)):
+        distance = perceptual_distance(generated_frame, committed_frame)
+        if distance > MAX_PERCEPTUAL_DISTANCE:
+            raise RuntimeError(
+                f"Visual content differs for {committed.relative_to(PROJECT_ROOT)} frame {index + 1}: {distance:.2f}"
+            )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="verify committed media reproduces byte for byte")
+    parser.add_argument("--check", action="store_true", help="verify committed media matches its sources and constraints")
     args = parser.parse_args()
 
     if args.check:
-        if MEDIA_MANIFEST.read_text(encoding="utf-8") != media_input_manifest():
+        if MEDIA_MANIFEST.read_text(encoding="utf-8") != media_manifest():
             raise RuntimeError(f"{MEDIA_MANIFEST.relative_to(PROJECT_ROOT)} is stale; regenerate README media")
         with TemporaryDirectory(prefix="deepseek-harness-media-") as directory:
             temporary = Path(directory)
@@ -215,13 +239,15 @@ def main() -> None:
             generate_social_preview(social_preview)
             generate_workflow_gif(workflow_gif)
             verify_outputs(social_preview, workflow_gif)
+            verify_visual_match(social_preview, SOCIAL_PREVIEW)
+            verify_visual_match(workflow_gif, WORKFLOW_GIF)
         print("README media inputs and generated output constraints are valid")
         return
 
     generate_social_preview()
     generate_workflow_gif()
     verify_outputs()
-    MEDIA_MANIFEST.write_text(media_input_manifest(), encoding="utf-8")
+    MEDIA_MANIFEST.write_text(media_manifest(), encoding="utf-8")
     print(f"Generated {SOCIAL_PREVIEW.relative_to(PROJECT_ROOT)} ({SOCIAL_PREVIEW.stat().st_size} bytes)")
     print(f"Generated {WORKFLOW_GIF.relative_to(PROJECT_ROOT)} ({WORKFLOW_GIF.stat().st_size} bytes)")
     print(f"Updated {MEDIA_MANIFEST.relative_to(PROJECT_ROOT)}")

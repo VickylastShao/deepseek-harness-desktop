@@ -42,8 +42,9 @@ python3 -m pip install Pillow==12.2.0 CairoSVG==2.9.0
 python3 scripts/generate-readme-media.py
 ```
 
-验证已提交的输入哈希清单仍然有效，并在不修改工作区的前提下确认生成器仍可
-产生符合约束的媒体。CI 工作流会安装 Noto Sans CJK，避免中文字幕回退为缺失字符。
+验证已提交的输入/输出哈希清单仍然有效，并在不修改工作区的前提下确认生成器
+仍可产生视觉内容匹配的媒体；比较过程允许渲染器造成的微小差异。CI 工作流会
+安装 Noto Sans CJK，避免中文字幕回退为缺失字符。
 
 ```bash
 python3 -m pip install -r docs/media-requirements.txt

@@ -44,10 +44,10 @@ python3 -m pip install Pillow==12.2.0 CairoSVG==2.9.0
 python3 scripts/generate-readme-media.py
 ```
 
-Verify that the committed input manifest is current and that the generator still
-produces valid media without modifying the worktree. The CI workflow installs
-Noto Sans CJK so Chinese captions are rendered instead of falling back to missing
-glyphs.
+Verify that the committed input/output hash manifest is current and that the
+generator still produces visually matching media without modifying the worktree.
+The comparison tolerates small renderer differences. The CI workflow installs
+Noto Sans CJK so Chinese captions do not fall back to missing glyphs.
 
 ```bash
 python3 -m pip install -r docs/media-requirements.txt
