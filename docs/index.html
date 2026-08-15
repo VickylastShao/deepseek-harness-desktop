@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#07111f">
+    <meta name="theme-color" content="#05070b">
     <meta name="color-scheme" content="dark">
     <title>DeepSeek Harness Desktop</title>
     <meta name="description" content="Run DeepSeek Harness as a self-contained desktop app on Windows, macOS, and Linux. No terminal or system-wide Node.js installation required.">
@@ -46,24 +46,41 @@
     </header>
 
     <main id="main">
-      <section class="hero shell" id="top">
-        <div class="hero-copy">
+      <section class="hero" id="top">
+        <div class="hero-copy shell">
           <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span><span data-i18n="eyebrow">Open source · v0.2.4 prerelease</span></p>
-          <h1 data-i18n="heroTitle">DeepSeek Harness,<br>without the terminal.</h1>
+          <h1 data-i18n="heroTitle">Harness has a<br><span>desktop now.</span></h1>
           <p class="hero-lede" data-i18n="heroLede">A self-contained desktop host for the unmodified upstream Harness Web UI. Install it, open it, and start working on Windows, macOS, or Linux.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#downloads" data-i18n="chooseDownload">Choose a download</a>
+            <a class="button button-primary" href="#downloads"><span data-i18n="chooseDownload">Download v0.2.4</span><span aria-hidden="true">↓</span></a>
             <a class="button button-secondary" href="https://github.com/VickylastShao/deepseek-harness-desktop" data-i18n="viewSource">View source</a>
           </div>
-          <p class="hero-note" data-i18n="heroNote">No system-wide Node.js. No persistent command window. No first-launch download.</p>
+          <div class="platform-line" aria-label="Supported desktop platforms">
+            <span>Windows</span><i aria-hidden="true"></i><span>macOS</span><i aria-hidden="true"></i><span>Linux</span>
+            <small data-i18n="heroNote">Runtime included. No terminal required.</small>
+          </div>
         </div>
 
-        <div class="hero-visual" aria-label="DeepSeek Harness Desktop application screenshot">
-          <div class="window-bar" aria-hidden="true">
-            <span></span><span></span><span></span>
-            <p>DeepSeek Harness Desktop</p>
+        <div class="hero-stage shell" aria-label="DeepSeek Harness Desktop product preview">
+          <div class="stage-glow" aria-hidden="true"></div>
+          <div class="signal-card signal-runtime" aria-hidden="true">
+            <span data-i18n="signalRuntime">Runtime</span><strong data-i18n="signalReady">Ready</strong>
           </div>
-          <img src="images/deepseek-harness-main.png" alt="DeepSeek Harness main session page running inside the desktop app" width="1440" height="873">
+          <div class="signal-card signal-update" aria-hidden="true">
+            <span data-i18n="signalUpdates">Updates</span><strong data-i18n="signalStaged">Staged quietly</strong>
+          </div>
+          <div class="hero-visual">
+            <div class="window-bar" aria-hidden="true">
+              <div><span></span><span></span><span></span></div>
+              <p>DeepSeek Harness Desktop</p>
+              <b>LOCAL · 127.0.0.1</b>
+            </div>
+            <img src="images/deepseek-harness-main.png" alt="DeepSeek Harness main session page running inside the desktop app" width="1440" height="873">
+          </div>
+          <div class="control-peek" aria-hidden="true">
+            <p><span class="status-dot"></span><span data-i18n="controlCenter">Desktop control center</span></p>
+            <img src="images/desktop-control-center-hero.png" alt="" width="1440" height="673">
+          </div>
         </div>
       </section>
 
@@ -76,14 +93,20 @@
         </div>
       </section>
 
-      <section class="section shell" id="features">
-        <div class="section-heading">
-          <p class="eyebrow" data-i18n="featuresEyebrow">Built for daily use</p>
-          <h2 data-i18n="featuresTitle">The desktop layer Harness was missing.</h2>
-          <p data-i18n="featuresLede">The upstream Web UI stays intact. The desktop app handles everything around it: startup, process health, updates, recovery, notifications, and support data.</p>
+      <section class="section experience shell" id="features">
+        <div class="experience-intro">
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="featuresEyebrow">Built for daily use</p>
+            <h2 data-i18n="featuresTitle">All the desktop work,<br><span>handled around Harness.</span></h2>
+            <p data-i18n="featuresLede">The upstream Web UI stays intact. The desktop app handles everything around it: startup, process health, updates, recovery, notifications, and support data.</p>
+          </div>
+          <div class="control-visual">
+            <div class="control-visual-label"><span class="status-dot"></span><span data-i18n="controlStatus">Managed runtime · running</span></div>
+            <img src="images/desktop-control-center-hero.png" alt="Desktop Control Center showing runtime health, update controls, and process status" width="1440" height="673">
+          </div>
         </div>
 
-        <div class="feature-list">
+        <div class="feature-list" aria-label="Desktop capabilities">
           <article>
             <span class="feature-number">01</span>
             <div><h3 data-i18n="featureOneTitle">Open and work</h3><p data-i18n="featureOneBody">The installer includes the runtime. Harness starts in the background without exposing a console window.</p></div>
@@ -107,7 +130,7 @@
         <div class="shell">
           <div class="section-heading downloads-heading">
             <p class="eyebrow" data-i18n="downloadsEyebrow">Download v0.2.4</p>
-            <h2 data-i18n="downloadsTitle">Pick your platform.</h2>
+            <h2 data-i18n="downloadsTitle">Pick your platform.<br><span>Keep your workflow.</span></h2>
             <p data-i18n="downloadsLede">Current installers are unsigned prerelease builds. Check the published SHA-256 file after downloading.</p>
           </div>
 
@@ -145,7 +168,7 @@
         <div class="boundary-mark"><img src="app-icon.svg" alt="" width="72" height="72"></div>
         <div>
           <p class="eyebrow" data-i18n="boundaryEyebrow">Clear project boundary</p>
-          <h2 data-i18n="boundaryTitle">Upstream Harness inside. Community desktop host outside.</h2>
+          <h2 data-i18n="boundaryTitle">Upstream Harness inside.<br><span>Community desktop host outside.</span></h2>
           <p data-i18n="boundaryBody">DeepSeek Harness supplies the agent runtime, plugin system, and Web UI. This repository supplies the Electron host, process lifecycle, staged updates, diagnostics, tray integration, and native installers.</p>
           <p class="boundary-notice" data-i18n="boundaryNotice">This is an unofficial community project and is not a DeepSeek product.</p>
         </div>
