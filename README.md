@@ -16,6 +16,7 @@
   <a href="https://vickylastshao.github.io/deepseek-harness-desktop/"><strong>Download v0.2.3</strong></a>
   · <a href="#get-started">Get started</a>
   · <a href="docs/USER_GUIDE.md">User guide</a>
+  · <a href="https://github.com/VickylastShao/deepseek-harness-desktop/discussions">Community</a>
   · <a href="README.zh-CN.md">简体中文</a>
 </p>
 
@@ -124,6 +125,7 @@ Read the [privacy policy](PRIVACY.md), [user guide](docs/USER_GUIDE.md), and
 
 - [User guide](docs/USER_GUIDE.md): tray behavior, updates, local data, diagnostics, and troubleshooting.
 - [Development and release guide](docs/DEVELOPMENT.md): setup, configuration, media generation, and release engineering.
+- [Contributing](CONTRIBUTING.md), [support](SUPPORT.md), and [security policy](SECURITY.md): community and reporting paths.
 - [Upstream Harness documentation](https://github.com/deepseek-ai/deepseek-harness/tree/master/docs): models, plugins, tools, sessions, and Web UI behavior.
 
 Report wrapper defects in the [issue tracker](https://github.com/VickylastShao/deepseek-harness-desktop/issues).

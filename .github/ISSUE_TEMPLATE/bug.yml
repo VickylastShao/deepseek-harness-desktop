@@ -1,0 +1,83 @@
+name: Bug report
+description: Report a reproducible defect in the desktop host, installer, or update path.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for DeepSeek Harness Desktop defects. Report models, plugins, sessions, tools, and upstream Web UI behavior to [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness/issues).
+
+  - type: input
+    id: desktop-version
+    attributes:
+      label: Desktop version
+      description: Find this in the Desktop Control Center or the release filename.
+      placeholder: v0.2.3
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: system-version
+    attributes:
+      label: System version and architecture
+      placeholder: Windows 11 24H2 x64, macOS 15 arm64, or Ubuntu 24.04 x64
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Describe the smallest repeatable sequence from a fresh application start.
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Reviewed diagnostic evidence
+      description: Paste only the smallest relevant, reviewed excerpt. Do not attach credentials, prompts, sessions, or workspace files.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and discussions for this behavior.
+          required: true
+        - label: This report concerns the desktop repository rather than upstream Harness behavior.
+          required: true
+        - label: I reviewed the attached evidence and removed private or credential material.
+          required: true

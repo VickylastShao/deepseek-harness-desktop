@@ -1,0 +1,61 @@
+name: Feature request
+description: Propose a focused capability for the desktop host.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for Electron host, native integration, lifecycle, update, diagnostics, or installer proposals. Propose upstream agent or Web UI capabilities to [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness/issues).
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Describe the concrete desktop workflow that is difficult or impossible today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe observable behavior rather than an implementation preference.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platforms
+    attributes:
+      label: Affected platforms
+      multiple: true
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternatives
+
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Project-boundary impact
+      description: Explain why this belongs in the desktop host without patching or injecting into the upstream Harness Web UI.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and discussions for this proposal.
+          required: true
+        - label: I understand that a feature request is not a commitment to implement or schedule the change.
+          required: true
