@@ -1,0 +1,5 @@
+# Reproducible README media hashes require byte-identical text inputs on every runner.
+scripts/generate-readme-media.py text eol=lf
+docs/media-requirements.txt text eol=lf
+docs/app-icon.svg text eol=lf
+docs/images/readme-media-inputs.sha256 text eol=lf
