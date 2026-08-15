@@ -231,6 +231,19 @@ test('README media manifest parser accepts Windows CRLF checkouts', () => {
   ])
 })
 
+test('hash-bound README media text inputs keep LF bytes on every platform', async () => {
+  const attributes = await readFile(path.join(projectRoot, '.gitattributes'), 'utf8')
+  const attributeLines = new Set(attributes.split(/\r?\n/u))
+  for (const entryPath of [
+    'scripts/generate-readme-media.py',
+    'docs/media-requirements.txt',
+    'docs/app-icon.svg',
+    'docs/images/readme-media-inputs.sha256',
+  ]) {
+    assert.equal(attributeLines.has(`${entryPath} text eol=lf`), true)
+  }
+})
+
 test('pull requests run the product documentation contract tests', async () => {
   const workflow = await readFile(path.join(projectRoot, '.github', 'workflows', 'docs-check.yml'), 'utf8')
 
