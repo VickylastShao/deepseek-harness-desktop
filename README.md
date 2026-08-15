@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.4"><img alt="Latest prerelease" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?include_prereleases&style=flat-square"></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.4"><img alt="Latest release" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?style=flat-square"></a>
   <a href="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml"><img alt="Native builds" src="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml/badge.svg"></a>
   <img alt="Windows, macOS, and Linux" src="https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-07111F?style=flat-square">
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square"></a>
@@ -53,7 +53,7 @@ The tour uses screenshots captured from the real Electron app:
 
 ## Download
 
-The current prerelease is **v0.2.4**. Use the normal installer for your platform;
+The current release is **v0.2.4**. Use the normal installer for your platform;
 the alternative package is provided where available.
 
 | Platform | Recommended | Alternative | SHA-256 |

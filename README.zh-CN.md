@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.4"><img alt="最新预发布版本" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?include_prereleases&style=flat-square"></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.4"><img alt="最新版本" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?style=flat-square"></a>
   <a href="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml"><img alt="原生平台构建" src="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml/badge.svg"></a>
   <img alt="Windows、macOS 和 Linux" src="https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-07111F?style=flat-square">
   <a href="LICENSE"><img alt="MIT 许可证" src="https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square"></a>
@@ -53,7 +53,7 @@
 
 ## 下载
 
-当前预发布版本为 **v0.2.4**。优先选择各平台的常规安装程序；部分平台同时提供备用格式。
+当前版本为 **v0.2.4**。优先选择各平台的常规安装程序；部分平台同时提供备用格式。
 
 | 平台 | 推荐 | 备用格式 | SHA-256 |
 | --- | --- | --- | --- |

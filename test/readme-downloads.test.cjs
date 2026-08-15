@@ -69,8 +69,10 @@ test('bilingual READMEs link every current release package and checksum', async 
     assert.match(document, new RegExp(`v${manifest.version.replaceAll('.', '\\.')}\\b`, 'u'))
   }
 
-  assert.match(documents[0], /github\/v\/release\/VickylastShao\/deepseek-harness-desktop\?include_prereleases/u)
-  assert.match(documents[1], /github\/v\/release\/VickylastShao\/deepseek-harness-desktop\?include_prereleases/u)
+  assert.match(documents[0], /github\/v\/release\/VickylastShao\/deepseek-harness-desktop\?style=flat-square/u)
+  assert.match(documents[1], /github\/v\/release\/VickylastShao\/deepseek-harness-desktop\?style=flat-square/u)
+  assert.doesNotMatch(documents[0], /current prerelease|latest prerelease/iu)
+  assert.doesNotMatch(documents[1], /当前预发布版本|最新预发布版本/u)
 
   const guides = await Promise.all([
     readFile(path.join(projectRoot, 'docs', 'USER_GUIDE.md'), 'utf8'),
@@ -80,6 +82,8 @@ test('bilingual READMEs link every current release package and checksum', async 
     assert.doesNotMatch(guide, /releases\/latest/u)
     assert.match(guide, new RegExp(`releases/tag/v${manifest.version.replaceAll('.', '\\.')}`, 'u'))
   }
+  assert.doesNotMatch(guides[0], /unsigned prerelease/iu)
+  assert.doesNotMatch(guides[1], /未签名的预发布/u)
 })
 
 test('bilingual README local images resolve inside the repository', async () => {
