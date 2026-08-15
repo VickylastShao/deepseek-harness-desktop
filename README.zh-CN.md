@@ -16,6 +16,7 @@
   <a href="https://vickylastshao.github.io/deepseek-harness-desktop/"><strong>下载 v0.2.3</strong></a>
   · <a href="#开始使用">开始使用</a>
   · <a href="docs/USER_GUIDE.zh-CN.md">用户指南</a>
+  · <a href="https://github.com/VickylastShao/deepseek-harness-desktop/discussions">社区</a>
   · <a href="README.md">English</a>
 </p>
 
@@ -119,6 +120,7 @@ Agent 运行时、插件、会话、工具和 Web UI。本仓库负责 Electron 
 
 - [用户指南](docs/USER_GUIDE.zh-CN.md)：托盘、更新、本地数据、诊断和问题排查。
 - [开发与发布指南](docs/DEVELOPMENT.zh-CN.md)：环境配置、媒体生成和发布流程。
+- [参与贡献](CONTRIBUTING.md)、[支持渠道](SUPPORT.md)和[安全政策](SECURITY.md)：社区参与与问题报告方式。
 - [上游 Harness 文档](https://github.com/deepseek-ai/deepseek-harness/tree/master/docs)：模型、插件、工具、会话和 Web UI。
 
 桌面封装问题请提交到 [Issue Tracker](https://github.com/VickylastShao/deepseek-harness-desktop/issues)。
