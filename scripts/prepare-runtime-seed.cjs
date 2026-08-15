@@ -2,7 +2,9 @@
 
 const { cp, mkdir, readFile, rename, rm } = require('node:fs/promises')
 const path = require('node:path')
-const { RuntimeUpdater } = require('../src/runtime-updater.cjs')
+const { inspectRuntime } = require('../src/runtime-store.cjs')
+const { RuntimeUpdater, smokeTest } = require('../src/runtime-updater.cjs')
+const { pruneNodePty } = require('./runtime-seed-prune.cjs')
 
 async function main() {
   const projectRoot = path.resolve(__dirname, '..')
@@ -34,16 +36,44 @@ async function main() {
 
   await mkdir(path.dirname(seedDir), { recursive: true })
   const temporary = `${seedDir}.${process.pid}.tmp`
+  const displaced = `${seedDir}.${process.pid}.replaced`
   await rm(temporary, { recursive: true, force: true })
-  await cp(runtime.rootDir, temporary, { recursive: true, preserveTimestamps: true })
-  await rm(seedDir, { recursive: true, force: true })
-  await rename(temporary, seedDir)
-  console.log(JSON.stringify({
-    version: runtime.version,
-    node: nodeManifest.version,
-    platform: key,
-    seedDir,
-  }, null, 2))
+  await rm(displaced, { recursive: true, force: true })
+  let movedExisting = false
+  try {
+    await cp(runtime.rootDir, temporary, { recursive: true, preserveTimestamps: true })
+    const pruning = await pruneNodePty(temporary)
+    const prunedRuntime = await inspectRuntime(temporary, nodeManifest.version)
+    if (prunedRuntime === undefined
+      || prunedRuntime.version !== runtime.version
+      || prunedRuntime.integrity !== runtime.integrity) {
+      throw new Error('Pruned runtime seed no longer matches its verified source runtime.')
+    }
+    await smokeTest(nodeExecutable, prunedRuntime.binPath, prunedRuntime.version)
+
+    try {
+      await rename(seedDir, displaced)
+      movedExisting = true
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+    try {
+      await rename(temporary, seedDir)
+    } catch (error) {
+      if (movedExisting) await rename(displaced, seedDir)
+      throw error
+    }
+    await rm(displaced, { recursive: true, force: true })
+    console.log(JSON.stringify({
+      version: runtime.version,
+      node: nodeManifest.version,
+      platform: key,
+      seedDir,
+      pruning,
+    }, null, 2))
+  } finally {
+    await rm(temporary, { recursive: true, force: true })
+  }
 }
 
 main().catch(error => {

@@ -50,6 +50,39 @@ test('bundled seed starts immediately when no local pointer exists', async () =>
   assert.equal(runtime.rootDir, seedDir)
 })
 
+test('a packaged seed archive is prepared lazily only when no managed runtime exists', async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), 'dsh-runtime-store-lazy-'))
+  const seedDir = path.join(rootDir, 'bundled', '1.0.0')
+  let preparations = 0
+  const store = new RuntimeStore({
+    rootDir,
+    nodeVersion: NODE_VERSION,
+    prepareSeed: async () => {
+      preparations += 1
+      return fakeRuntime(seedDir, '1.0.0')
+    },
+  })
+
+  const runtime = await store.resolveStartupRuntime()
+  assert.equal(runtime.rootDir, seedDir)
+  assert.equal(store.seedDir, seedDir)
+  assert.equal(preparations, 1)
+})
+
+test('a verified active runtime avoids unpacking the bundled fallback', async () => {
+  const { rootDir, store } = await fixture()
+  const active = await fakeRuntime(path.join(rootDir, 'versions', '1.5.0'), '1.5.0')
+  await store.setPending(active)
+  await store.resolveStartupRuntime()
+  const reloaded = new RuntimeStore({
+    rootDir,
+    nodeVersion: NODE_VERSION,
+    prepareSeed: async () => { throw new Error('bundled fallback should not be prepared') },
+  })
+
+  assert.equal((await reloaded.resolveStartupRuntime()).version, '1.5.0')
+})
+
 test('a pending update is promoted locally on the next startup', async () => {
   const { rootDir, store } = await fixture()
   const update = await fakeRuntime(path.join(rootDir, 'versions', '1.1.0'), '1.1.0')

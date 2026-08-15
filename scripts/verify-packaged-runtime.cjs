@@ -3,18 +3,21 @@
 const { mkdtemp, readFile, rm } = require('node:fs/promises')
 const os = require('node:os')
 const path = require('node:path')
+const { prepareBundledRuntime } = require('../src/bundled-runtime.cjs')
 const { HarnessProcess } = require('../src/harness-process.cjs')
-const { inspectRuntime } = require('../src/runtime-store.cjs')
 
 async function main() {
   const resourcesDir = path.resolve(process.argv[2])
   const nodeRoot = path.join(resourcesDir, 'node-runtime')
   const nodeManifest = JSON.parse(await readFile(path.join(nodeRoot, 'package.json'), 'utf8'))
   const nodeExecutable = path.join(nodeRoot, 'bin', process.platform === 'win32' ? 'node.exe' : 'node')
-  const runtime = await inspectRuntime(path.join(resourcesDir, 'runtime-seed'), nodeManifest.version)
-  if (runtime === undefined) throw new Error('Packaged runtime seed is absent or invalid.')
-
   const temporary = await mkdtemp(path.join(os.tmpdir(), 'dsh-packaged-verify-'))
+  const runtime = await prepareBundledRuntime({
+    bundleDir: path.join(resourcesDir, 'runtime-bundle'),
+    rootDir: path.join(temporary, 'managed-runtime'),
+    runtimeExecutable: nodeExecutable,
+    nodeVersion: nodeManifest.version,
+  }, status => console.log(`[${status.phase}] ${status.message}`))
   const harness = new HarnessProcess({
     runtimeExecutable: nodeExecutable,
     binPath: runtime.binPath,
@@ -30,6 +33,7 @@ async function main() {
     }
     console.log(JSON.stringify({
       resourcesDir,
+      bundle: path.join(resourcesDir, 'runtime-bundle', 'runtime.tgz'),
       harness: runtime.version,
       node: nodeManifest.version,
       url,

@@ -20,8 +20,15 @@ npm test
 npm run smoke:tray
 npm run prepare:seed
 npm run smoke:harness
+npm run package:runtime
 npm run dist
 ```
+
+`prepare:seed` accesses the registry only on the developer or CI build machine.
+`package:runtime` turns that verified runtime into one offline archive plus its
+manifest, so the installer does not download dependencies on the user's machine.
+Only the first application launch without a usable local runtime verifies,
+extracts, and atomically activates that archive in the user-data directory.
 
 Generated runtime and installer directories (`runtime-seed/`,
 `runtime-release/`, `build/`, and `release/`) are excluded from Git.
@@ -73,7 +80,7 @@ dimensions, file signatures, size budgets, release links, and bilingual structur
 | `DSH_DESKTOP_UPDATE_DELAY_MS` | Delay before the first desktop-shell check. | `60000` |
 | `DSH_DESKTOP_UPDATE_INTERVAL_MS` | Interval between later desktop checks. | `21600000` |
 | `DSH_DESKTOP_WORKSPACE` | Initial Harness working directory. | User home directory |
-| `DSH_RUNTIME_SEED` | Override the bundled seed for development and testing. | Packaged seed |
+| `DSH_RUNTIME_SEED` | Override the bundled archive with an extracted directory for development and testing. | Packaged offline archive |
 
 ## Release engineering
 

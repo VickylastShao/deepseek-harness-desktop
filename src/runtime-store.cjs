@@ -59,6 +59,7 @@ class RuntimeStore {
   constructor(options) {
     this.rootDir = options.rootDir
     this.seedDir = options.seedDir
+    this.prepareSeed = options.prepareSeed
     this.nodeVersion = options.nodeVersion
     this.activePath = path.join(this.rootDir, 'active.json')
     this.pendingPath = path.join(this.rootDir, 'pending.json')
@@ -92,7 +93,20 @@ class RuntimeStore {
     const active = await this.runtimeForPointer(await readJsonOptional(this.activePath))
     if (active !== undefined) return active
 
-    const seed = await inspectRuntime(this.seedDir, this.nodeVersion)
+    let seed = this.seedDir === undefined
+      ? undefined
+      : await inspectRuntime(this.seedDir, this.nodeVersion)
+    if (seed === undefined && this.prepareSeed !== undefined) {
+      const prepared = await this.prepareSeed()
+      seed = prepared?.rootDir === undefined
+        ? undefined
+        : await inspectRuntime(prepared.rootDir, this.nodeVersion)
+      if (seed !== undefined
+        && (seed.version !== prepared.version || seed.integrity !== prepared.integrity)) {
+        seed = undefined
+      }
+      if (seed !== undefined) this.seedDir = seed.rootDir
+    }
     if (seed === undefined) {
       throw new Error('No verified bundled or installed DeepSeek Harness runtime is available.')
     }

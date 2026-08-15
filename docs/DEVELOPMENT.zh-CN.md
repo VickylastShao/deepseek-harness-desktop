@@ -19,8 +19,13 @@ npm test
 npm run smoke:tray
 npm run prepare:seed
 npm run smoke:harness
+npm run package:runtime
 npm run dist
 ```
+
+`prepare:seed` 只在开发机或 CI 构建机联网获取运行时；`package:runtime` 将验证过的
+运行时生成一个离线压缩包和元数据，安装器不会在用户终端下载依赖。应用首次启动且
+没有可用的本地运行时时，才会把该压缩包校验、解压并原子启用到用户数据目录。
 
 生成的运行时与安装包目录（`runtime-seed/`、`runtime-release/`、`build/`、
 `release/`）不会提交到 Git。
@@ -70,7 +75,7 @@ Release 链接和中英文结构。
 | `DSH_DESKTOP_UPDATE_DELAY_MS` | 首次桌面外壳更新检查延迟。 | `60000` |
 | `DSH_DESKTOP_UPDATE_INTERVAL_MS` | 后续桌面外壳更新检查间隔。 | `21600000` |
 | `DSH_DESKTOP_WORKSPACE` | Harness 初始工作目录。 | 用户主目录 |
-| `DSH_RUNTIME_SEED` | 开发和测试时覆盖内置种子运行时。 | 打包种子 |
+| `DSH_RUNTIME_SEED` | 开发和测试时用已展开目录覆盖内置运行时归档。 | 打包的离线归档 |
 
 ## 发布工程
 
