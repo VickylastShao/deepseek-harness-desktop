@@ -3,7 +3,7 @@
 const path = require('node:path')
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
-const MAIN_SIDEBAR_WIDTH = 280
+const MAX_HARNESS_SIDEBAR_WIDTH = 420
 const TITLEBAR_HEIGHT = 44
 const WINDOWS_LINUX_CONTROLS_WIDTH = 138
 
@@ -37,7 +37,6 @@ function createWindowOptions(baseDir, platform = process.platform) {
             height: TITLEBAR_HEIGHT,
           },
         }),
-    webPreferences: isolatedWebPreferences(),
   }
 }
 
@@ -60,9 +59,9 @@ function calculateMainWindowLayout(size, platform = process.platform) {
   return {
     runtime: { x: 0, y: 0, width, height },
     titlebarDrag: {
-      x: MAIN_SIDEBAR_WIDTH,
+      x: MAX_HARNESS_SIDEBAR_WIDTH,
       y: 0,
-      width: Math.max(0, width - MAIN_SIDEBAR_WIDTH - controlsWidth),
+      width: Math.max(0, width - MAX_HARNESS_SIDEBAR_WIDTH - controlsWidth),
       height: Math.min(TITLEBAR_HEIGHT, height),
     },
   }

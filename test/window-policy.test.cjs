@@ -31,6 +31,13 @@ test('renderer has no Node integration and keeps Chromium isolation enabled', ()
     symbolColor: '#c9cbd0',
     height: 44,
   })
+  assert.equal(options.webPreferences, undefined)
+})
+
+test('Linux uses the same native overlay contract as Windows', () => {
+  const options = createWindowOptions('/application', 'linux')
+  assert.equal(options.titleBarStyle, 'hidden')
+  assert.equal(options.titleBarOverlay.height, 44)
 })
 
 test('macOS keeps inset native traffic lights without a Windows overlay', () => {
@@ -54,11 +61,15 @@ test('runtime and drag views keep Chromium isolation enabled', () => {
 test('main content fills the client area while the drag surface avoids native controls', () => {
   assert.deepEqual(calculateMainWindowLayout([1280, 840], 'win32'), {
     runtime: { x: 0, y: 0, width: 1280, height: 840 },
-    titlebarDrag: { x: 280, y: 0, width: 862, height: 44 },
+    titlebarDrag: { x: 420, y: 0, width: 722, height: 44 },
   })
   assert.deepEqual(calculateMainWindowLayout([1280, 840], 'darwin'), {
     runtime: { x: 0, y: 0, width: 1280, height: 840 },
-    titlebarDrag: { x: 280, y: 0, width: 1000, height: 44 },
+    titlebarDrag: { x: 420, y: 0, width: 860, height: 44 },
+  })
+  assert.deepEqual(calculateMainWindowLayout([-1, 20], 'linux'), {
+    runtime: { x: 0, y: 0, width: 0, height: 20 },
+    titlebarDrag: { x: 420, y: 0, width: 0, height: 20 },
   })
 })
 

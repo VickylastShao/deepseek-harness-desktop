@@ -6,6 +6,7 @@ const { existsSync, readFileSync } = require('node:fs')
 const { mkdir, appendFile } = require('node:fs/promises')
 const {
   app,
+  BaseWindow,
   BrowserWindow,
   dialog,
   ipcMain,
@@ -31,7 +32,10 @@ const {
   loginItemSupported,
 } = require('./desktop-preferences.cjs')
 const { HarnessProcess } = require('./harness-process.cjs')
-const { createMainWindowSurface } = require('./main-window-surface.cjs')
+const {
+  createMainWindowSurface,
+  installRuntimeNavigationGuards,
+} = require('./main-window-surface.cjs')
 const { restartManagedRuntime } = require('./runtime-control.cjs')
 const { RuntimeRecoveryController } = require('./runtime-recovery.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
@@ -40,8 +44,6 @@ const { TaskCompletionMonitor } = require('./task-completion-monitor.cjs')
 const {
   createDesktopCenterWindowOptions,
   createWindowOptions,
-  isAllowedRuntimeUrl,
-  isSafeExternalUrl,
 } = require('./window-policy.cjs')
 
 suppressDefaultApplicationMenu(Menu)
@@ -392,29 +394,34 @@ function mainRuntimeWebContents() {
 }
 
 async function createWindow() {
-  mainWindow = new BrowserWindow(createWindowOptions(__dirname))
-  mainSurface = await createMainWindowSurface({
+  const window = new BaseWindow(createWindowOptions(__dirname))
+  mainWindow = window
+  window.on('closed', () => {
+    if (mainWindow === window) {
+      mainWindow = undefined
+      mainSurface = undefined
+    }
+  })
+  const surface = await createMainWindowSurface({
     baseDir: __dirname,
     WebContentsView,
-    window: mainWindow,
+    window,
   })
-  initializeTray(mainWindow)
+  if (window.isDestroyed()) return
+  mainSurface = surface
+  initializeTray(window)
 
   const contents = mainRuntimeWebContents()
   if (contents === undefined) throw new Error('Unable to create the Harness runtime view.')
 
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-  contents.setWindowOpenHandler(({ url }) => {
-    if (isSafeExternalUrl(url)) void shell.openExternal(url)
-    return { action: 'deny' }
-  })
-
-  contents.on('will-navigate', (event, url) => {
-    if (!isAllowedRuntimeUrl(url, runtimeOrigin)) event.preventDefault()
+  installRuntimeNavigationGuards({
+    getRuntimeOrigin: () => runtimeOrigin,
+    openExternal: url => shell.openExternal(url),
+    webContents: contents,
   })
 
   await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
-  if (!mainWindow.isDestroyed()) mainWindow.show()
+  if (!window.isDestroyed()) window.show()
   void startRuntime()
 }
 

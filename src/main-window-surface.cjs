@@ -5,7 +5,19 @@ const {
   calculateMainWindowLayout,
   createRuntimeViewOptions,
   createTitlebarDragViewOptions,
+  isAllowedRuntimeUrl,
+  isSafeExternalUrl,
 } = require('./window-policy.cjs')
+
+function installRuntimeNavigationGuards({ getRuntimeOrigin, openExternal, webContents }) {
+  webContents.setWindowOpenHandler(({ url }) => {
+    if (isSafeExternalUrl(url)) void openExternal(url)
+    return { action: 'deny' }
+  })
+  webContents.on('will-navigate', (event, url) => {
+    if (!isAllowedRuntimeUrl(url, getRuntimeOrigin())) event.preventDefault()
+  })
+}
 
 async function createMainWindowSurface({
   baseDir,
@@ -33,14 +45,28 @@ async function createMainWindowSurface({
     if (disposed) return
     disposed = true
     window.removeListener('resize', layout)
+    window.removeListener('closed', closeAfterWindowDestroyed)
+    window.contentView.removeChildView(runtimeView)
+    window.contentView.removeChildView(titlebarDragView)
     closeView(runtimeView)
     closeView(titlebarDragView)
   }
-  window.on('closed', dispose)
+  const closeAfterWindowDestroyed = () => {
+    if (disposed) return
+    disposed = true
+    closeView(runtimeView)
+    closeView(titlebarDragView)
+  }
+  window.on('closed', closeAfterWindowDestroyed)
 
-  await titlebarDragView.webContents.loadFile(
-    path.join(baseDir, 'renderer', 'titlebar-drag.html'),
-  )
+  try {
+    await titlebarDragView.webContents.loadFile(
+      path.join(baseDir, 'renderer', 'titlebar-drag.html'),
+    )
+  } catch (error) {
+    dispose()
+    throw error
+  }
 
   return { dispose, runtimeView, titlebarDragView }
 }
@@ -49,4 +75,4 @@ function closeView(view) {
   if (!view.webContents.isDestroyed()) view.webContents.close()
 }
 
-module.exports = { createMainWindowSurface }
+module.exports = { createMainWindowSurface, installRuntimeNavigationGuards }
