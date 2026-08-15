@@ -97,7 +97,39 @@ async function main() {
       throw new Error('Website preview contains an image that failed to load')
     }
     await capture(window, 'desktop.png', { width: 1440, height: 960 })
+
+    const promptState = await window.webContents.executeJavaScript(`
+      (() => {
+        document.querySelector('.button-download').click()
+        const dialog = document.querySelector('#download-prompt')
+        return {
+          open: dialog.open,
+          title: document.querySelector('#download-prompt-title').textContent,
+          activeAction: document.activeElement?.dataset.downloadAction,
+        }
+      })()
+    `)
+    if (!promptState.open || !promptState.title.includes('download is ready') || promptState.activeAction !== 'star') {
+      throw new Error('Website download prompt did not open with the Star action focused')
+    }
+    await capture(window, 'download-prompt-desktop.png', { width: 1440, height: 960 })
+    await window.webContents.executeJavaScript("document.querySelector('[data-download-action=close]').click()")
+
     await capture(window, 'mobile.png', { width: 390, height: 844 })
+    const mobilePromptState = await window.webContents.executeJavaScript(`
+      (() => {
+        setLanguage('zh')
+        document.querySelector('.button-download').click()
+        return {
+          open: document.querySelector('#download-prompt').open,
+          title: document.querySelector('#download-prompt-title').textContent,
+        }
+      })()
+    `)
+    if (!mobilePromptState.open || !mobilePromptState.title.includes('安装包已经准备好了')) {
+      throw new Error('Mobile Chinese download prompt did not render')
+    }
+    await capture(window, 'download-prompt-mobile.png', { width: 390, height: 844 })
   } finally {
     window.destroy()
     server.close()

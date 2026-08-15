@@ -16,6 +16,7 @@
     <meta property="og:image" content="https://vickylastshao.github.io/deepseek-harness-desktop/images/deepseek-harness-main.png">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="site.css">
+    <script src="download-prompt.js"></script>
     <script src="site.js" defer></script>
   </head>
   <body>
@@ -145,6 +146,24 @@
         </div>
       </section>
     </main>
+
+    <dialog class="download-prompt" id="download-prompt" aria-labelledby="download-prompt-title" aria-describedby="download-prompt-description">
+      <button class="download-prompt-close" type="button" data-download-action="close" data-i18n-aria-label="downloadPromptClose" aria-label="Close download prompt">×</button>
+      <div class="download-prompt-mark" aria-hidden="true">
+        <img src="app-icon.svg" alt="" width="64" height="64">
+      </div>
+      <p class="eyebrow" data-i18n="downloadPromptEyebrow">Support open source</p>
+      <h2 id="download-prompt-title" data-i18n="downloadPromptTitle">Your download is ready.</h2>
+      <p id="download-prompt-description" data-i18n="downloadPromptDescription">If this project is useful to you, consider leaving a Star on GitHub. It helps more people discover the project.</p>
+      <div class="download-prompt-actions">
+        <button class="button download-prompt-star" type="button" data-download-action="star" autofocus>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2.5 2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.31l-5.8 3.05 1.11-6.46-4.7-4.58 6.49-.94L12 2.5Z"/></svg>
+          <span data-i18n="downloadPromptStar">Star on GitHub &amp; download</span>
+        </button>
+        <button class="button download-prompt-direct" type="button" data-download-action="direct" data-i18n="downloadPromptDirect">Download without starring</button>
+      </div>
+      <p class="download-prompt-note" data-i18n="downloadPromptNote">No GitHub sign-in or permission is requested by this website.</p>
+    </dialog>
 
     <footer>
       <div class="shell footer-grid">

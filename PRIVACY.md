@@ -31,5 +31,13 @@ Electron window to navigate only to that exact local origin. This policy covers
 the desktop wrapper; upstream Harness, model providers, websites, and operating
 system services have their own data practices.
 
+## Project website
+
+The project website stores the selected language and whether the optional
+GitHub Star download prompt has already been handled in the browser's local
+storage. These values stay in the browser and are not used for analytics. The
+prompt always offers a direct download and does not request GitHub sign-in or
+account permissions.
+
 Questions or suspected privacy defects can be reported through the project's
 [GitHub issue tracker](https://github.com/VickylastShao/deepseek-harness-desktop/issues).
