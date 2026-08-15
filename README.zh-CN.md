@@ -6,14 +6,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2"><img alt="最新预发布版本" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?include_prereleases&style=flat-square"></a>
+  <a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.3"><img alt="最新预发布版本" src="https://img.shields.io/github/v/release/VickylastShao/deepseek-harness-desktop?include_prereleases&style=flat-square"></a>
   <a href="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml"><img alt="原生平台构建" src="https://github.com/VickylastShao/deepseek-harness-desktop/actions/workflows/build-installers.yml/badge.svg"></a>
   <img alt="Windows、macOS 和 Linux" src="https://img.shields.io/badge/Windows%20%7C%20macOS%20%7C%20Linux-07111F?style=flat-square">
   <a href="LICENSE"><img alt="MIT 许可证" src="https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square"></a>
 </p>
 
 <p align="center">
-  <a href="https://vickylastshao.github.io/deepseek-harness-desktop/"><strong>下载 v0.2.2</strong></a>
+  <a href="https://vickylastshao.github.io/deepseek-harness-desktop/"><strong>下载 v0.2.3</strong></a>
   · <a href="#开始使用">开始使用</a>
   · <a href="docs/USER_GUIDE.zh-CN.md">用户指南</a>
   · <a href="README.md">English</a>
@@ -52,27 +52,27 @@
 
 ## 下载
 
-当前预发布版本为 **v0.2.2**。优先选择各平台的常规安装程序；部分平台同时提供备用格式。
+当前预发布版本为 **v0.2.3**。优先选择各平台的常规安装程序；部分平台同时提供备用格式。
 
 | 平台 | 推荐 | 备用格式 | SHA-256 |
 | --- | --- | --- | --- |
-| Windows x64 | [安装程序 EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-win-x64.exe) | — | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-win32-x64.txt) |
-| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-linux-x86_64.AppImage) | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-linux-x64.txt) |
-| macOS Apple 芯片 | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-arm64.zip) | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-darwin-arm64.txt) |
-| macOS Intel | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-x64.zip) | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-darwin-x64.txt) |
+| Windows x64 | [安装程序 EXE](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-win-x64.exe) | — | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-win32-x64.txt) |
+| Ubuntu/Debian x64 | [DEB](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-linux-amd64.deb) | [AppImage](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-linux-x86_64.AppImage) | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-linux-x64.txt) |
+| macOS Apple 芯片 | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-arm64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-arm64.zip) | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-darwin-arm64.txt) |
+| macOS Intel | [DMG](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-x64.dmg) | [ZIP](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/DeepSeek-Harness-Desktop-0.2.3-mac-x64.zip) | [校验文件](https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.3/SHA256SUMS-darwin-x64.txt) |
 
-`v0.2.2` 及更早版本的安装包尚未签名。Windows SmartScreen 或 macOS Gatekeeper
+`v0.2.3` 及更早版本的安装包尚未签名。Windows SmartScreen 或 macOS Gatekeeper
 可能显示“未知发布者”提示。安装前请阅读[代码签名状态](docs/CODE_SIGNING.md)。
 
 <details>
 <summary><strong>校验下载的安装包</strong></summary>
 
 ```powershell
-Get-FileHash .\DeepSeek-Harness-Desktop-0.2.2-win-x64.exe -Algorithm SHA256
+Get-FileHash .\DeepSeek-Harness-Desktop-0.2.3-win-x64.exe -Algorithm SHA256
 ```
 
 ```bash
-sha256sum DeepSeek-Harness-Desktop-0.2.2-linux-amd64.deb
+sha256sum DeepSeek-Harness-Desktop-0.2.3-linux-amd64.deb
 ```
 
 </details>
@@ -93,6 +93,7 @@ DeepSeek Harness 本身可以通过 `npx @deepseek-ai/dsh web` 在命令行中�
 
 | 桌面能力 | 用户体验 |
 | --- | --- |
+| 原生窗口外观 | Harness 内容延伸到窗口边缘，同时保留 Windows 贴靠布局和 macOS 交通灯按钮。 |
 | 自包含运行时 | 安装包内置 Node.js 和平台原生 Harness 运行时。 |
 | 受控生命周期 | 在随机回环端口启动单个隐藏进程，并在明确退出时停止进程树。 |
 | 系统托盘与通知 | 窗口隐藏后保持会话运行，并在后台任务完成时发送通知。 |

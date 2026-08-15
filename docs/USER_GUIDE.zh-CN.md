@@ -4,7 +4,7 @@
 
 ## 安装与首次启动
 
-请从 [v0.2.2 Release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2)
+请从 [v0.2.3 Release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.3)
 下载对应平台的安装包。当前版本仍是未签名的预发布构建：
 
 - Windows 可能显示 Microsoft Defender SmartScreen，请先核对发布者提示与 SHA-256。
@@ -25,6 +25,7 @@
 
 ## 窗口、托盘与通知
 
+- 主窗口取消了独立标题栏，但继续使用操作系统原生窗口按钮。
 - 启用 **Keep running when the window closes** 后，关闭主窗口只会隐藏应用。
 - 再次启动程序会恢复已存在的单实例窗口。
 - 托盘菜单可以重新打开或重启 Harness、检查更新、打开日志和明确退出。

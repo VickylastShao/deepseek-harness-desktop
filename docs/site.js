@@ -3,7 +3,7 @@
 const copy = {
   en: {
     skip: 'Skip to content', navFeatures: 'Features', navDownloads: 'Downloads', navGithub: 'GitHub',
-    eyebrow: 'Open source · v0.2.2 prerelease', heroTitle: 'DeepSeek Harness,<br>without the terminal.',
+    eyebrow: 'Open source · v0.2.3 prerelease', heroTitle: 'DeepSeek Harness,<br>without the terminal.',
     heroLede: 'A self-contained desktop host for the unmodified upstream Harness Web UI. Install it, open it, and start working on Windows, macOS, or Linux.',
     chooseDownload: 'Choose a download', viewSource: 'View source', heroNote: 'No system-wide Node.js. No persistent command window. No first-launch download.',
     proofRuntimeTitle: 'Self-contained', proofRuntimeBody: 'Node.js + native Harness runtime', proofPlatformsTitle: 'Cross-platform', proofPlatformsBody: 'Windows, macOS, and Linux',
@@ -14,7 +14,7 @@ const copy = {
     featureTwoTitle: 'Stay out of the way', featureTwoBody: 'Close to the tray, receive task-completion notifications, and reopen the same managed session.',
     featureThreeTitle: 'Update without waiting', featureThreeBody: 'Harness and desktop updates are checked after launch, staged in the background, and activated on the next restart.',
     featureFourTitle: 'Diagnose in one step', featureFourBody: 'The control center exposes runtime health and exports a bounded, redacted diagnostic bundle for support.',
-    downloadsEyebrow: 'Download v0.2.2', downloadsTitle: 'Pick your platform.', downloadsLede: 'Current installers are unsigned prerelease builds. Check the published SHA-256 file after downloading.',
+    downloadsEyebrow: 'Download v0.2.3', downloadsTitle: 'Pick your platform.', downloadsLede: 'Current installers are unsigned prerelease builds. Check the published SHA-256 file after downloading.',
     downloadWindows: 'Download for Windows', viewChecksum: 'View checksum', viewChecksums: 'View checksums', allReleaseFiles: 'Release notes and all package formats →',
     boundaryEyebrow: 'Clear project boundary', boundaryTitle: 'Upstream Harness inside. Community desktop host outside.',
     boundaryBody: 'DeepSeek Harness supplies the agent runtime, plugin system, and Web UI. This repository supplies the Electron host, process lifecycle, staged updates, diagnostics, tray integration, and native installers.',
@@ -26,7 +26,7 @@ const copy = {
   },
   zh: {
     skip: '跳到正文', navFeatures: '功能', navDownloads: '下载', navGithub: 'GitHub',
-    eyebrow: '开源 · v0.2.2 预发布版', heroTitle: '使用 DeepSeek Harness，<br>不再守着命令行。',
+    eyebrow: '开源 · v0.2.3 预发布版', heroTitle: '使用 DeepSeek Harness，<br>不再守着命令行。',
     heroLede: '为未经修改的上游 Harness Web UI 提供完整桌面宿主。安装、打开，即可在 Windows、macOS 或 Linux 上开始工作。',
     chooseDownload: '选择安装包', viewSource: '查看源码', heroNote: '无需全局 Node.js，无需常驻命令行窗口，首次启动无需下载运行时。',
     proofRuntimeTitle: '自带运行时', proofRuntimeBody: 'Node.js + 平台原生 Harness', proofPlatformsTitle: '跨平台', proofPlatformsBody: 'Windows、macOS 与 Linux',
@@ -37,7 +37,7 @@ const copy = {
     featureTwoTitle: '需要时出现', featureTwoBody: '关闭到托盘、接收任务完成通知，再次打开时恢复同一个受控会话。',
     featureThreeTitle: '更新不必等待', featureThreeBody: '应用启动后再检查 Harness 与桌面更新，后台暂存，并在下次重启后启用。',
     featureFourTitle: '一键完成诊断', featureFourBody: '控制中心展示运行状态，并可导出有大小上限、经过脱敏的诊断包。',
-    downloadsEyebrow: '下载 v0.2.2', downloadsTitle: '选择你的平台。', downloadsLede: '当前安装包是尚未签名的预发布构建。下载后请核对发布页提供的 SHA-256。',
+    downloadsEyebrow: '下载 v0.2.3', downloadsTitle: '选择你的平台。', downloadsLede: '当前安装包是尚未签名的预发布构建。下载后请核对发布页提供的 SHA-256。',
     downloadWindows: '下载 Windows 版', viewChecksum: '查看校验值', viewChecksums: '查看校验值', allReleaseFiles: '发行说明与全部安装格式 →',
     boundaryEyebrow: '明确的项目边界', boundaryTitle: '内部是上游 Harness，外部是社区桌面宿主。',
     boundaryBody: 'DeepSeek Harness 提供智能体运行时、插件系统和 Web UI；本仓库提供 Electron 宿主、进程生命周期、暂存更新、诊断、托盘集成与原生安装包。',

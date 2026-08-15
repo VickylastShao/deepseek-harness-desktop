@@ -5,7 +5,7 @@
 ## Install and first launch
 
 Download the package for your platform from the
-[v0.2.2 release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2).
+[v0.2.3 release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.3).
 The current installers are unsigned prerelease builds:
 
 - Windows may display Microsoft Defender SmartScreen. Review the publisher warning and checksum before continuing.
@@ -28,6 +28,7 @@ The initial workspace is the user home directory unless
 
 ## Window, tray, and notifications
 
+- The main window uses the operating system's native controls without a separate title bar.
 - Closing the main window hides it when **Keep running when the window closes** is enabled.
 - Starting the app again restores the existing single instance.
 - The tray menu can reopen or restart Harness, check updates, open logs, and explicitly quit.

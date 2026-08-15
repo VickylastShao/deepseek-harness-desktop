@@ -6,6 +6,7 @@ const { existsSync, readFileSync } = require('node:fs')
 const { mkdir, appendFile } = require('node:fs/promises')
 const {
   app,
+  BaseWindow,
   BrowserWindow,
   dialog,
   ipcMain,
@@ -14,6 +15,7 @@ const {
   Notification,
   shell,
   Tray,
+  WebContentsView,
 } = require('electron')
 const { suppressDefaultApplicationMenu } = require('./application-menu.cjs')
 const {
@@ -30,6 +32,10 @@ const {
   loginItemSupported,
 } = require('./desktop-preferences.cjs')
 const { HarnessProcess } = require('./harness-process.cjs')
+const {
+  createMainWindowSurface,
+  installRuntimeNavigationGuards,
+} = require('./main-window-surface.cjs')
 const { restartManagedRuntime } = require('./runtime-control.cjs')
 const { RuntimeRecoveryController } = require('./runtime-recovery.cjs')
 const { RuntimeBundleUpdater } = require('./runtime-bundle-updater.cjs')
@@ -38,14 +44,13 @@ const { TaskCompletionMonitor } = require('./task-completion-monitor.cjs')
 const {
   createDesktopCenterWindowOptions,
   createWindowOptions,
-  isAllowedRuntimeUrl,
-  isSafeExternalUrl,
 } = require('./window-policy.cjs')
 
 suppressDefaultApplicationMenu(Menu)
 if (process.platform === 'win32') app.setAppUserModelId('ai.deepseek.harness.desktop')
 
 let mainWindow
+let mainSurface
 let desktopCenterWindow
 let trayController
 let runtimeOrigin
@@ -379,26 +384,44 @@ function showMainWindow() {
 }
 
 function sendStatus(status) {
-  if (mainWindow !== undefined && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('runtime:status', status)
-  }
+  const contents = mainRuntimeWebContents()
+  if (contents !== undefined) contents.send('runtime:status', status)
+}
+
+function mainRuntimeWebContents() {
+  const contents = mainSurface?.runtimeView.webContents
+  return contents === undefined || contents.isDestroyed() ? undefined : contents
 }
 
 async function createWindow() {
-  mainWindow = new BrowserWindow(createWindowOptions(__dirname))
-  initializeTray(mainWindow)
+  const window = new BaseWindow(createWindowOptions(__dirname))
+  mainWindow = window
+  window.on('closed', () => {
+    if (mainWindow === window) {
+      mainWindow = undefined
+      mainSurface = undefined
+    }
+  })
+  const surface = await createMainWindowSurface({
+    baseDir: __dirname,
+    WebContentsView,
+    window,
+  })
+  if (window.isDestroyed()) return
+  mainSurface = surface
+  initializeTray(window)
 
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (isSafeExternalUrl(url)) void shell.openExternal(url)
-    return { action: 'deny' }
+  const contents = mainRuntimeWebContents()
+  if (contents === undefined) throw new Error('Unable to create the Harness runtime view.')
+
+  installRuntimeNavigationGuards({
+    getRuntimeOrigin: () => runtimeOrigin,
+    openExternal: url => shell.openExternal(url),
+    webContents: contents,
   })
 
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isAllowedRuntimeUrl(url, runtimeOrigin)) event.preventDefault()
-  })
-
-  mainWindow.once('ready-to-show', () => mainWindow.show())
-  await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
+  await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
+  if (!window.isDestroyed()) window.show()
   void startRuntime()
 }
 
@@ -406,8 +429,9 @@ async function showFailure(error) {
   writeLog('desktop', `${error.stack ?? error.message}\n`)
   runtimeOrigin = undefined
   setRuntimeLifecycle({ phase: 'error', error: error.message })
-  if (mainWindow === undefined || mainWindow.isDestroyed()) return
-  await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
+  const contents = mainRuntimeWebContents()
+  if (mainWindow === undefined || mainWindow.isDestroyed() || contents === undefined) return
+  await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
   sendStatus({
     phase: 'error',
     message: '无法启动本机已有的 DeepSeek Harness 运行时。',
@@ -419,8 +443,9 @@ async function showRecoveryStatus({ attempt, delayMs, error }) {
   writeLog('desktop', `scheduling automatic recovery ${attempt} in ${delayMs} ms\n`)
   runtimeOrigin = undefined
   setRuntimeLifecycle({ phase: 'recovering', attempt, error: error.message })
-  if (mainWindow === undefined || mainWindow.isDestroyed()) return
-  await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
+  const contents = mainRuntimeWebContents()
+  if (mainWindow === undefined || mainWindow.isDestroyed() || contents === undefined) return
+  await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
   sendStatus({
     phase: 'starting',
     message: `Harness 意外退出，正在进行第 ${attempt} 次自动恢复……`,
@@ -549,13 +574,17 @@ async function handleUnexpectedExit(result) {
 }
 
 async function startRuntime() {
-  if (starting || quitting || mainWindow === undefined || mainWindow.isDestroyed()) return
+  const contents = mainRuntimeWebContents()
+  if (
+    starting || quitting || mainWindow === undefined || mainWindow.isDestroyed()
+    || contents === undefined
+  ) return
   starting = true
   runtimeOrigin = undefined
   setRuntimeLifecycle({ phase: 'starting', error: undefined })
 
   try {
-    await mainWindow.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
+    await contents.loadFile(path.join(__dirname, 'renderer', 'loading.html'))
     const nodeTools = bundledNodeTools()
     const runtimeRoot = path.join(app.getPath('userData'), 'harness-runtime')
     const runtimeStore = new RuntimeStore({
@@ -587,14 +616,14 @@ async function startRuntime() {
     })
     harnessProcess = processController
     const url = await processController.start()
-    if (quitting || mainWindow.isDestroyed()) {
+    if (quitting || mainWindow.isDestroyed() || contents.isDestroyed()) {
       await processController.stop()
       return
     }
 
     runtimeOrigin = new URL(url).origin
     writeLog('desktop', `loading ${runtimeOrigin}\n`)
-    await mainWindow.loadURL(url)
+    await contents.loadURL(url)
     setRuntimeLifecycle({ phase: 'running', error: undefined })
     startTaskCompletionMonitor(runtimeOrigin)
     desktopAppUpdater?.start()

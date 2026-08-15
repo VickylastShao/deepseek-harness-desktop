@@ -3,8 +3,21 @@
 const path = require('node:path')
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
+const MAX_HARNESS_SIDEBAR_WIDTH = 420
+const TITLEBAR_HEIGHT = 44
+const WINDOWS_LINUX_CONTROLS_WIDTH = 138
 
-function createWindowOptions(baseDir) {
+function isolatedWebPreferences(preload) {
+  return {
+    ...(preload === undefined ? {} : { preload }),
+    nodeIntegration: false,
+    contextIsolation: true,
+    sandbox: true,
+    webSecurity: true,
+  }
+}
+
+function createWindowOptions(baseDir, platform = process.platform) {
   return {
     width: 1280,
     height: 840,
@@ -12,14 +25,44 @@ function createWindowOptions(baseDir) {
     minHeight: 640,
     show: false,
     icon: path.join(baseDir, '..', 'assets', 'app-icon.png'),
-    backgroundColor: '#f5f7fb',
+    backgroundColor: '#121214',
     title: 'DeepSeek Harness',
-    webPreferences: {
-      preload: path.join(baseDir, 'preload.cjs'),
-      nodeIntegration: false,
-      contextIsolation: true,
-      sandbox: true,
-      webSecurity: true,
+    titleBarStyle: platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    ...(platform === 'darwin'
+      ? {}
+      : {
+          titleBarOverlay: {
+            color: '#121214',
+            symbolColor: '#c9cbd0',
+            height: TITLEBAR_HEIGHT,
+          },
+        }),
+  }
+}
+
+function createRuntimeViewOptions(baseDir) {
+  return {
+    webPreferences: isolatedWebPreferences(path.join(baseDir, 'preload.cjs')),
+  }
+}
+
+function createTitlebarDragViewOptions() {
+  return {
+    webPreferences: isolatedWebPreferences(),
+  }
+}
+
+function calculateMainWindowLayout(size, platform = process.platform) {
+  const width = Math.max(0, Math.trunc(size[0]))
+  const height = Math.max(0, Math.trunc(size[1]))
+  const controlsWidth = platform === 'darwin' ? 0 : WINDOWS_LINUX_CONTROLS_WIDTH
+  return {
+    runtime: { x: 0, y: 0, width, height },
+    titlebarDrag: {
+      x: MAX_HARNESS_SIDEBAR_WIDTH,
+      y: 0,
+      width: Math.max(0, width - MAX_HARNESS_SIDEBAR_WIDTH - controlsWidth),
+      height: Math.min(TITLEBAR_HEIGHT, height),
     },
   }
 }
@@ -65,7 +108,10 @@ function isSafeExternalUrl(value) {
 }
 
 module.exports = {
+  calculateMainWindowLayout,
   createDesktopCenterWindowOptions,
+  createRuntimeViewOptions,
+  createTitlebarDragViewOptions,
   createWindowOptions,
   isAllowedRuntimeUrl,
   isSafeExternalUrl,
