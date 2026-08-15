@@ -1,0 +1,51 @@
+name: Verify README media
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/readme-media.yml'
+      - 'docs/app-icon.svg'
+      - 'docs/media-requirements.txt'
+      - 'docs/images/deepseek-harness-main.png'
+      - 'docs/images/desktop-control-center-hero.png'
+      - 'docs/images/desktop-startup.png'
+      - 'docs/images/desktop-workflow.gif'
+      - 'docs/images/readme-media-inputs.sha256'
+      - 'docs/images/social-preview.png'
+      - 'scripts/generate-readme-media.py'
+  pull_request:
+    paths:
+      - '.github/workflows/readme-media.yml'
+      - 'docs/app-icon.svg'
+      - 'docs/media-requirements.txt'
+      - 'docs/images/deepseek-harness-main.png'
+      - 'docs/images/desktop-control-center-hero.png'
+      - 'docs/images/desktop-startup.png'
+      - 'docs/images/desktop-workflow.gif'
+      - 'docs/images/readme-media-inputs.sha256'
+      - 'docs/images/social-preview.png'
+      - 'scripts/generate-readme-media.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install canonical fonts and media dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y fonts-noto-cjk
+          python3 -m pip install --disable-pip-version-check -r docs/media-requirements.txt
+      - name: Validate media inputs and generated output constraints
+        run: python3 scripts/generate-readme-media.py --check
