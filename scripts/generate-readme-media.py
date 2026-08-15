@@ -7,8 +7,11 @@ README rendering does not depend on a build step or a third-party image host.
 
 from __future__ import annotations
 
+import argparse
 from io import BytesIO
 from pathlib import Path
+import sys
+from tempfile import TemporaryDirectory
 
 import cairosvg
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -97,7 +100,7 @@ def paste_with_shadow(canvas: Image.Image, image: Image.Image, position: tuple[i
     canvas.alpha_composite(image, position)
 
 
-def generate_social_preview() -> None:
+def generate_social_preview(output: Path = SOCIAL_PREVIEW) -> None:
     canvas = gradient((1280, 640), NAVY, NAVY_LIGHT).convert("RGBA")
     draw = ImageDraw.Draw(canvas)
 
@@ -117,7 +120,7 @@ def generate_social_preview() -> None:
     paste_with_shadow(canvas, screenshot, (562, 93))
     draw.rounded_rectangle((562, 93, 562 + screenshot.width - 1, 93 + screenshot.height - 1), radius=20, outline=(76, 105, 146, 255), width=2)
 
-    canvas.convert("RGB").save(SOCIAL_PREVIEW, format="PNG", optimize=True)
+    canvas.convert("RGB").save(output, format="PNG", optimize=True)
 
 
 def workflow_frame(source: Path, number: str, english: str, chinese: str) -> Image.Image:
@@ -140,7 +143,7 @@ def workflow_frame(source: Path, number: str, english: str, chinese: str) -> Ima
     return canvas.convert("RGB")
 
 
-def generate_workflow_gif() -> None:
+def generate_workflow_gif(output: Path = WORKFLOW_GIF) -> None:
     scenes = [
         workflow_frame(IMAGE_DIR / "desktop-startup.png", "1", "Launch without a terminal", "无需命令行即可启动"),
         workflow_frame(IMAGE_DIR / "deepseek-harness-main.png", "2", "Work in the upstream Harness UI", "使用未经修改的上游 Harness 界面"),
@@ -157,7 +160,7 @@ def generate_workflow_gif() -> None:
 
     palette_frames = [frame.quantize(colors=128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG) for frame in frames]
     palette_frames[0].save(
-        WORKFLOW_GIF,
+        output,
         format="GIF",
         save_all=True,
         append_images=palette_frames[1:],
@@ -168,22 +171,53 @@ def generate_workflow_gif() -> None:
     )
 
 
-def verify_outputs() -> None:
-    with Image.open(SOCIAL_PREVIEW) as image:
+def verify_outputs(social_preview: Path = SOCIAL_PREVIEW, workflow_gif: Path = WORKFLOW_GIF) -> None:
+    with Image.open(social_preview) as image:
         if image.size != (1280, 640):
             raise RuntimeError(f"Unexpected social preview size: {image.size}")
-    with Image.open(WORKFLOW_GIF) as image:
+    with Image.open(workflow_gif) as image:
         if image.size != (960, 600):
             raise RuntimeError(f"Unexpected workflow GIF size: {image.size}")
-    if SOCIAL_PREVIEW.stat().st_size >= 1024 * 1024:
+    if social_preview.stat().st_size >= 1024 * 1024:
         raise RuntimeError("Social preview exceeds 1 MiB")
-    if WORKFLOW_GIF.stat().st_size > 5 * 1024 * 1024:
+    if workflow_gif.stat().st_size > 5 * 1024 * 1024:
         raise RuntimeError("Workflow GIF exceeds 5 MiB")
 
 
-if __name__ == "__main__":
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="verify committed media reproduces byte for byte")
+    args = parser.parse_args()
+
+    if args.check:
+        canonical_fonts = [
+            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+            Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
+            Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
+        ]
+        if not sys.platform.startswith("linux") or not all(candidate.exists() for candidate in canonical_fonts):
+            parser.error("--check requires Linux with the canonical DejaVu and Noto CJK fonts")
+        with TemporaryDirectory(prefix="deepseek-harness-media-") as directory:
+            temporary = Path(directory)
+            social_preview = temporary / SOCIAL_PREVIEW.name
+            workflow_gif = temporary / WORKFLOW_GIF.name
+            generate_social_preview(social_preview)
+            generate_workflow_gif(workflow_gif)
+            verify_outputs(social_preview, workflow_gif)
+            if social_preview.read_bytes() != SOCIAL_PREVIEW.read_bytes():
+                raise RuntimeError(f"{SOCIAL_PREVIEW.relative_to(PROJECT_ROOT)} is stale; regenerate README media")
+            if workflow_gif.read_bytes() != WORKFLOW_GIF.read_bytes():
+                raise RuntimeError(f"{WORKFLOW_GIF.relative_to(PROJECT_ROOT)} is stale; regenerate README media")
+        print("Committed README media is reproducible")
+        return
+
     generate_social_preview()
     generate_workflow_gif()
     verify_outputs()
     print(f"Generated {SOCIAL_PREVIEW.relative_to(PROJECT_ROOT)} ({SOCIAL_PREVIEW.stat().st_size} bytes)")
     print(f"Generated {WORKFLOW_GIF.relative_to(PROJECT_ROOT)} ({WORKFLOW_GIF.stat().st_size} bytes)")
+
+
+if __name__ == "__main__":
+    main()

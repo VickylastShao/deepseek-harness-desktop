@@ -44,6 +44,16 @@ python3 -m pip install Pillow==12.2.0 CairoSVG==2.9.0
 python3 scripts/generate-readme-media.py
 ```
 
+Verify that committed media is reproducible without modifying the worktree. The
+byte-for-byte check uses the canonical Ubuntu 24.04 CI environment with DejaVu
+Sans and Noto Sans CJK; use WSL or the `Verify README media` workflow from other
+platforms.
+
+```bash
+python3 -m pip install -r docs/media-requirements.txt
+python3 scripts/generate-readme-media.py --check
+```
+
 The generator enforces these delivery constraints:
 
 - `desktop-workflow.gif`: 960×600 and no larger than 5 MiB;

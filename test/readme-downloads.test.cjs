@@ -9,6 +9,49 @@ const manifest = require('../package.json')
 
 const projectRoot = path.resolve(__dirname, '..')
 
+function gifFrameDurations(buffer) {
+  let offset = 13
+  const packed = buffer[10]
+  if (packed & 0x80) offset += 3 * (2 ** ((packed & 0x07) + 1))
+
+  const durations = []
+  let pendingDuration = null
+  const skipSubBlocks = () => {
+    while (offset < buffer.length) {
+      const size = buffer[offset++]
+      if (size === 0) break
+      offset += size
+    }
+  }
+
+  while (offset < buffer.length) {
+    const marker = buffer[offset++]
+    if (marker === 0x3b) break
+    if (marker === 0x21) {
+      const label = buffer[offset++]
+      if (label === 0xf9) {
+        assert.equal(buffer[offset++], 4, 'graphic control extension must have its standard size')
+        offset += 1
+        pendingDuration = buffer.readUInt16LE(offset)
+        offset += 4
+      } else {
+        skipSubBlocks()
+      }
+      continue
+    }
+    assert.equal(marker, 0x2c, `unexpected GIF block marker 0x${marker.toString(16)}`)
+    const imagePacked = buffer[offset + 8]
+    offset += 9
+    if (imagePacked & 0x80) offset += 3 * (2 ** ((imagePacked & 0x07) + 1))
+    offset += 1
+    skipSubBlocks()
+    durations.push(pendingDuration)
+    pendingDuration = null
+  }
+
+  return durations
+}
+
 test('bilingual READMEs link every current release package and checksum', async () => {
   const documents = await Promise.all([
     readFile(path.join(projectRoot, 'README.md'), 'utf8'),
@@ -35,6 +78,32 @@ test('bilingual README local images resolve inside the repository', async () => 
 
     assert.ok(sources.length > 0)
     for (const source of sources) await access(path.join(projectRoot, source))
+  }
+})
+
+test('all local links in the bilingual product documentation resolve', async () => {
+  const documentPaths = [
+    'README.md',
+    'README.zh-CN.md',
+    'docs/USER_GUIDE.md',
+    'docs/USER_GUIDE.zh-CN.md',
+    'docs/DEVELOPMENT.md',
+    'docs/DEVELOPMENT.zh-CN.md',
+  ]
+
+  for (const documentPath of documentPaths) {
+    const content = await readFile(path.join(projectRoot, documentPath), 'utf8')
+    const targets = [
+      ...[...content.matchAll(/\[[^\]]*\]\(([^)]+)\)/gu)].map(match => match[1]),
+      ...[...content.matchAll(/\b(?:href|src)="([^"]+)"/gu)].map(match => match[1]),
+    ]
+    const localTargets = targets
+      .map(target => target.split(/[?#]/u, 1)[0])
+      .filter(target => target && !/^(?:[a-z]+:|\/\/)/iu.test(target))
+
+    for (const target of localTargets) {
+      await access(path.resolve(projectRoot, path.dirname(documentPath), decodeURIComponent(target)))
+    }
   }
 })
 
@@ -86,6 +155,8 @@ test('README media matches the published dimensions and size budgets', async () 
 
   assert.match(gif.subarray(0, 6).toString('ascii'), /^GIF8[79]a$/u)
   assert.deepEqual([gif.readUInt16LE(6), gif.readUInt16LE(8)], [960, 600])
+  assert.deepEqual(gifFrameDurations(gif), [170, 260, 210], 'tour must contain three clean cuts totaling 6.4 seconds')
+  assert.ok(gif.includes(Buffer.from('NETSCAPE2.0', 'ascii')), 'tour must include an explicit loop extension')
   assert.ok(gifInfo.size <= 5 * 1024 * 1024, 'animated tour must not exceed 5 MiB')
 
   assert.deepEqual([...preview.subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10])
@@ -100,4 +171,17 @@ test('website metadata uses the repository social preview', async () => {
   assert.match(website, /name="twitter:card" content="summary_large_image"/u)
   assert.match(website, /name="twitter:image:alt" content="[^"]+"/u)
   assert.doesNotMatch(website, /official DeepSeek Harness experience/iu)
+
+  const localizedCopy = await readFile(path.join(projectRoot, 'docs', 'site.js'), 'utf8')
+  assert.match(localizedCopy, /unmodified upstream Harness Web UI/u)
+  assert.match(localizedCopy, /未经修改的上游 Harness Web UI/u)
+})
+
+test('README media reproducibility runs in a least-privilege workflow', async () => {
+  const workflow = await readFile(path.join(projectRoot, '.github', 'workflows', 'readme-media.yml'), 'utf8')
+
+  assert.match(workflow, /permissions:\s*\n\s+contents: read/u)
+  assert.match(workflow, /runs-on: ubuntu-24\.04/u)
+  assert.match(workflow, /python3 scripts\/generate-readme-media\.py --check/u)
+  assert.doesNotMatch(workflow, /(?:pages|id-token): write/u)
 })
