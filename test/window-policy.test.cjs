@@ -3,8 +3,10 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
 const {
+  applyMainWindowAppearance,
   calculateMainWindowLayout,
   createDesktopCenterWindowOptions,
+  createMainWindowAppearance,
   createRuntimeViewOptions,
   createTitlebarDragViewOptions,
   createWindowOptions,
@@ -26,12 +28,54 @@ test('renderer has no Node integration and keeps Chromium isolation enabled', ()
   const options = createWindowOptions('/application', 'win32')
   assert.equal(options.icon, pathFor('/assets/app-icon.png'))
   assert.equal(options.titleBarStyle, 'hidden')
+  assert.equal(options.backgroundColor, '#f5f7fb')
   assert.deepEqual(options.titleBarOverlay, {
-    color: '#121214',
-    symbolColor: '#c9cbd0',
+    color: '#00000000',
+    symbolColor: '#172033',
     height: 44,
   })
   assert.equal(options.webPreferences, undefined)
+})
+
+test('native window controls follow loading and runtime surface contrast', () => {
+  assert.deepEqual(createMainWindowAppearance('loading', 'win32'), {
+    backgroundColor: '#f5f7fb',
+    titleBarOverlay: {
+      color: '#00000000',
+      symbolColor: '#172033',
+      height: 44,
+    },
+  })
+  assert.deepEqual(createMainWindowAppearance('runtime', 'win32'), {
+    backgroundColor: '#121214',
+    titleBarOverlay: {
+      color: '#00000000',
+      symbolColor: '#c9cbd0',
+      height: 44,
+    },
+  })
+  assert.deepEqual(createMainWindowAppearance('loading', 'darwin'), {
+    backgroundColor: '#f5f7fb',
+  })
+  assert.throws(() => createMainWindowAppearance('unknown', 'win32'), /Unknown main window appearance/u)
+})
+
+test('native window appearance is updated through Electron window APIs', () => {
+  const calls = []
+  const window = {
+    setBackgroundColor: color => calls.push(['background', color]),
+    setTitleBarOverlay: overlay => calls.push(['overlay', overlay]),
+  }
+
+  applyMainWindowAppearance(window, 'runtime', 'win32')
+  assert.deepEqual(calls, [
+    ['background', '#121214'],
+    ['overlay', { color: '#00000000', symbolColor: '#c9cbd0', height: 44 }],
+  ])
+
+  calls.length = 0
+  applyMainWindowAppearance(window, 'loading', 'darwin')
+  assert.deepEqual(calls, [['background', '#f5f7fb']])
 })
 
 test('Linux uses the same native overlay contract as Windows', () => {

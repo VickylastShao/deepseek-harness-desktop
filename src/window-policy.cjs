@@ -6,6 +6,10 @@ const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]'])
 const MAX_HARNESS_SIDEBAR_WIDTH = 420
 const TITLEBAR_HEIGHT = 44
 const WINDOWS_LINUX_CONTROLS_WIDTH = 138
+const MAIN_WINDOW_COLORS = {
+  loading: { backgroundColor: '#f5f7fb', symbolColor: '#172033' },
+  runtime: { backgroundColor: '#121214', symbolColor: '#c9cbd0' },
+}
 
 function isolatedWebPreferences(preload) {
   return {
@@ -18,6 +22,7 @@ function isolatedWebPreferences(preload) {
 }
 
 function createWindowOptions(baseDir, platform = process.platform) {
+  const appearance = createMainWindowAppearance('loading', platform)
   return {
     width: 1280,
     height: 840,
@@ -25,18 +30,37 @@ function createWindowOptions(baseDir, platform = process.platform) {
     minHeight: 640,
     show: false,
     icon: path.join(baseDir, '..', 'assets', 'app-icon.png'),
-    backgroundColor: '#121214',
+    backgroundColor: appearance.backgroundColor,
     title: 'DeepSeek Harness',
     titleBarStyle: platform === 'darwin' ? 'hiddenInset' : 'hidden',
+    ...(appearance.titleBarOverlay === undefined
+      ? {}
+      : { titleBarOverlay: appearance.titleBarOverlay }),
+  }
+}
+
+function createMainWindowAppearance(phase, platform = process.platform) {
+  const colors = MAIN_WINDOW_COLORS[phase]
+  if (colors === undefined) throw new TypeError(`Unknown main window appearance: ${phase}`)
+  return {
+    backgroundColor: colors.backgroundColor,
     ...(platform === 'darwin'
       ? {}
       : {
           titleBarOverlay: {
-            color: '#121214',
-            symbolColor: '#c9cbd0',
+            color: '#00000000',
+            symbolColor: colors.symbolColor,
             height: TITLEBAR_HEIGHT,
           },
         }),
+  }
+}
+
+function applyMainWindowAppearance(window, phase, platform = process.platform) {
+  const appearance = createMainWindowAppearance(phase, platform)
+  window.setBackgroundColor(appearance.backgroundColor)
+  if (appearance.titleBarOverlay !== undefined) {
+    window.setTitleBarOverlay(appearance.titleBarOverlay)
   }
 }
 
@@ -108,8 +132,10 @@ function isSafeExternalUrl(value) {
 }
 
 module.exports = {
+  applyMainWindowAppearance,
   calculateMainWindowLayout,
   createDesktopCenterWindowOptions,
+  createMainWindowAppearance,
   createRuntimeViewOptions,
   createTitlebarDragViewOptions,
   createWindowOptions,
