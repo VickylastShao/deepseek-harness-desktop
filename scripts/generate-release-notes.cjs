@@ -27,11 +27,17 @@ function generateReleaseNotes(options) {
   const changes = typeof options.changes === 'string' && options.changes.trim() !== ''
     ? `\n\n${options.changes.trim()}\n`
     : '\n'
+  const prereleaseNotice = options.unsignedPrerelease === true
+    ? `\n\n> **Unsigned prerelease:** these installers are not code-signed or notarized.\n> Windows SmartScreen and macOS Gatekeeper may show an unknown-publisher\n> warning. Verify the downloaded file against the linked SHA-256 list.\n`
+    : ''
+  const signingGuidance = options.unsignedPrerelease === true
+    ? `- This prerelease is unsigned. Verify its SHA-256 before installation; do\n  not expect Windows or macOS to display a verified publisher.`
+    : `- Tagged production releases pass the repository signing preflight. Verify the\n  displayed publisher on Windows/macOS and compare the file with its SHA-256 list.`
 
-  return `# DeepSeek Harness Desktop ${tag}
+return `# DeepSeek Harness Desktop ${tag}
 
 Run the official DeepSeek Harness Web UI as a self-contained desktop app. No
-system-wide Node.js installation or terminal window is required.
+system-wide Node.js installation or terminal window is required.${prereleaseNotice}
 
 ## Direct downloads
 
@@ -45,11 +51,10 @@ system-wide Node.js installation or terminal window is required.
 ## Install and update behavior
 
 - The installer includes a platform-native Node.js and verified Harness runtime.
-- Launch never waits for an update check. Updates download in the background and
-  activate only after a later normal restart or quit.
+- Launch never waits for a Harness update check. Harness updates download in the
+  background and activate only after a later normal restart or quit.
 - Installing a newer desktop release preserves the per-user Harness data directory.
-- Tagged releases pass the repository signing preflight. Verify the displayed
-  publisher on Windows/macOS and compare the downloaded file with its SHA-256 list.
+${signingGuidance}
 
 ## Support bundle
 
@@ -60,14 +65,23 @@ posting it publicly.${changes}`
 }
 
 async function main() {
-  const [repository, tag, changesPath, outputPath] = process.argv.slice(2)
+  const [repository, tag, changesPath, outputPath, releaseKind] = process.argv.slice(2)
   if (outputPath === undefined) {
-    throw new Error('Usage: generate-release-notes.cjs <owner/repo> <tag> <changes.md> <output.md>')
+    throw new Error('Usage: generate-release-notes.cjs <owner/repo> <tag> <changes.md> <output.md> [--unsigned-prerelease]')
+  }
+  if (releaseKind !== undefined && releaseKind !== '--unsigned-prerelease') {
+    throw new Error(`Unknown release note option: ${releaseKind}`)
   }
   const projectRoot = path.resolve(__dirname, '..')
   const manifest = JSON.parse(await readFile(path.join(projectRoot, 'package.json'), 'utf8'))
   const changes = await readFile(path.resolve(changesPath), 'utf8')
-  const notes = generateReleaseNotes({ repository, tag, version: manifest.version, changes })
+  const notes = generateReleaseNotes({
+    repository,
+    tag,
+    version: manifest.version,
+    changes,
+    unsignedPrerelease: releaseKind === '--unsigned-prerelease',
+  })
   const target = path.resolve(outputPath)
   await mkdir(path.dirname(target), { recursive: true })
   await writeFile(target, notes, 'utf8')

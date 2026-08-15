@@ -28,3 +28,17 @@ test('release notes reject tags, versions, and repositories that could produce b
   assert.throws(() => generateReleaseNotes({ repository: 'not a repo', tag: 'v0.3.0', version: '0.3.0' }), /repository/u)
   assert.throws(() => artifactNames('../bad'), /version/u)
 })
+
+test('unsigned prerelease notes disclose signing status without claiming a verified publisher', () => {
+  const notes = generateReleaseNotes({
+    repository: 'VickylastShao/deepseek-harness-desktop',
+    tag: 'v0.3.0',
+    version: '0.3.0',
+    unsignedPrerelease: true,
+  })
+
+  assert.match(notes, /Unsigned prerelease/u)
+  assert.match(notes, /SmartScreen/u)
+  assert.match(notes, /Gatekeeper/u)
+  assert.doesNotMatch(notes, /pass the repository signing preflight/u)
+})

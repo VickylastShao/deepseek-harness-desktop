@@ -19,6 +19,13 @@ const PACKAGE_NAME = '@deepseek-ai/dsh'
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/'
 const READY_MARKER = '.runtime-ready.json'
 const INSTALLER_ID = 'bundled-npm-v1'
+const RUNTIME_COMPATIBILITY_OVERRIDES = Object.freeze({
+  '0.1.0-rc.6': Object.freeze({
+    // 3.972.80 requires @aws-sdk/credential-provider-ini@^3.973.14, which
+    // was not published with the matching AWS SDK release set.
+    '@aws-sdk/credential-provider-node': '3.972.79',
+  }),
+})
 
 function normalizedRegistry(value = DEFAULT_REGISTRY) {
   const registry = new URL(value)
@@ -157,12 +164,19 @@ function runCommand(executable, args, options = {}) {
   })
 }
 
-async function installWithNpm(runtimeExecutable, npmCliPath, cacheDir, stageDir, manifest, registry, signal) {
+function runtimePackageJson(manifest) {
   const packageJson = {
     name: 'deepseek-harness-desktop-runtime',
     private: true,
     dependencies: { [PACKAGE_NAME]: manifest.version },
   }
+  const overrides = RUNTIME_COMPATIBILITY_OVERRIDES[manifest.version]
+  if (overrides !== undefined) packageJson.overrides = overrides
+  return packageJson
+}
+
+async function installWithNpm(runtimeExecutable, npmCliPath, cacheDir, stageDir, manifest, registry, signal) {
+  const packageJson = runtimePackageJson(manifest)
   await writeFile(
     path.join(stageDir, 'package.json'),
     `${JSON.stringify(packageJson, null, 2)}\n`,
@@ -341,6 +355,7 @@ module.exports = {
   INSTALLER_ID,
   PACKAGE_NAME,
   READY_MARKER,
+  RUNTIME_COMPATIBILITY_OVERRIDES,
   RuntimeUpdater,
   assertNodeCompatibility,
   fetchLatestManifest,
@@ -348,6 +363,7 @@ module.exports = {
   installWithNpm,
   normalizedRegistry,
   readReadyRuntime,
+  runtimePackageJson,
   runtimePathEnvironment,
   runCommand,
   smokeTest,

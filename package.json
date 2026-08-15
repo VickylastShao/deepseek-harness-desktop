@@ -1,8 +1,8 @@
 {
   "name": "deepseek-harness-desktop",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Cross-platform desktop launcher for DeepSeek Harness",
-  "homepage": "https://github.com/VickylastShao/deepseek-harness-desktop#readme",
+  "homepage": "https://vickylastshao.github.io/deepseek-harness-desktop/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/VickylastShao/deepseek-harness-desktop.git"
@@ -24,6 +24,7 @@
     "smoke:harness": "cross-env ELECTRON_RUN_AS_NODE=1 electron scripts/smoke-harness.cjs",
     "smoke:tray": "electron scripts/smoke-tray.cjs",
     "capture:screenshots": "electron scripts/capture-readme-screenshots.cjs",
+    "capture:site": "electron scripts/capture-website-screenshots.cjs",
     "prepare:seed": "node scripts/prepare-runtime-seed.cjs",
     "package:runtime": "node scripts/package-runtime.cjs",
     "verify:packaged": "node scripts/verify-packaged-runtime.cjs",

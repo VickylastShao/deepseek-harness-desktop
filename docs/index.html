@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#07111f">
+    <meta name="color-scheme" content="dark">
+    <title>DeepSeek Harness Desktop</title>
+    <meta name="description" content="Run DeepSeek Harness as a self-contained desktop app on Windows, macOS, and Linux. No terminal or system-wide Node.js installation required.">
+    <link rel="canonical" href="https://vickylastshao.github.io/deepseek-harness-desktop/">
+    <link rel="icon" href="app-icon.svg" type="image/svg+xml">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="DeepSeek Harness Desktop">
+    <meta property="og:description" content="A self-contained desktop launcher for the official DeepSeek Harness experience.">
+    <meta property="og:url" content="https://vickylastshao.github.io/deepseek-harness-desktop/">
+    <meta property="og:image" content="https://vickylastshao.github.io/deepseek-harness-desktop/images/deepseek-harness-main.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="site.css">
+    <script src="site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main" data-i18n="skip">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="nav shell" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="DeepSeek Harness Desktop home">
+          <img src="app-icon.svg" alt="" width="36" height="36">
+          <span>DeepSeek Harness <strong>Desktop</strong></span>
+        </a>
+        <div class="nav-actions">
+          <a class="nav-link" href="#features" data-i18n="navFeatures">Features</a>
+          <a class="nav-link" href="#downloads" data-i18n="navDownloads">Downloads</a>
+          <a class="nav-link" href="https://github.com/VickylastShao/deepseek-harness-desktop" data-i18n="navGithub">GitHub</a>
+          <button class="language-switch" type="button" aria-label="Switch language" aria-pressed="false">
+            <span class="language-en">中文</span>
+            <span class="language-zh">EN</span>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero shell" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span><span data-i18n="eyebrow">Open source · v0.2.2 prerelease</span></p>
+          <h1 data-i18n="heroTitle">DeepSeek Harness,<br>without the terminal.</h1>
+          <p class="hero-lede" data-i18n="heroLede">A self-contained desktop host for the official Harness Web UI. Install it, open it, and start working on Windows, macOS, or Linux.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#downloads" data-i18n="chooseDownload">Choose a download</a>
+            <a class="button button-secondary" href="https://github.com/VickylastShao/deepseek-harness-desktop" data-i18n="viewSource">View source</a>
+          </div>
+          <p class="hero-note" data-i18n="heroNote">No system-wide Node.js. No persistent command window. No first-launch download.</p>
+        </div>
+
+        <div class="hero-visual" aria-label="DeepSeek Harness Desktop application screenshot">
+          <div class="window-bar" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <p>DeepSeek Harness Desktop</p>
+          </div>
+          <img src="images/deepseek-harness-main.png" alt="DeepSeek Harness main session page running inside the desktop app" width="1440" height="873">
+        </div>
+      </section>
+
+      <section class="proof-strip" aria-label="Supported capabilities">
+        <div class="shell proof-grid">
+          <p><strong data-i18n="proofRuntimeTitle">Self-contained</strong><span data-i18n="proofRuntimeBody">Node.js + native Harness runtime</span></p>
+          <p><strong data-i18n="proofPlatformsTitle">Cross-platform</strong><span data-i18n="proofPlatformsBody">Windows, macOS, and Linux</span></p>
+          <p><strong data-i18n="proofUpdatesTitle">Quiet updates</strong><span data-i18n="proofUpdatesBody">Downloaded in the background</span></p>
+          <p><strong data-i18n="proofOpenTitle">Open source</strong><span data-i18n="proofOpenBody">MIT licensed desktop host</span></p>
+        </div>
+      </section>
+
+      <section class="section shell" id="features">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="featuresEyebrow">Built for daily use</p>
+          <h2 data-i18n="featuresTitle">The desktop layer Harness was missing.</h2>
+          <p data-i18n="featuresLede">The upstream Web UI stays intact. The desktop app handles everything around it: startup, process health, updates, recovery, notifications, and support data.</p>
+        </div>
+
+        <div class="feature-list">
+          <article>
+            <span class="feature-number">01</span>
+            <div><h3 data-i18n="featureOneTitle">Open and work</h3><p data-i18n="featureOneBody">The installer includes the runtime. Harness starts in the background without exposing a console window.</p></div>
+          </article>
+          <article>
+            <span class="feature-number">02</span>
+            <div><h3 data-i18n="featureTwoTitle">Stay out of the way</h3><p data-i18n="featureTwoBody">Close to the tray, receive task-completion notifications, and reopen the same managed session.</p></div>
+          </article>
+          <article>
+            <span class="feature-number">03</span>
+            <div><h3 data-i18n="featureThreeTitle">Update without waiting</h3><p data-i18n="featureThreeBody">Harness and desktop updates are checked after launch, staged in the background, and activated on the next restart.</p></div>
+          </article>
+          <article>
+            <span class="feature-number">04</span>
+            <div><h3 data-i18n="featureFourTitle">Diagnose in one step</h3><p data-i18n="featureFourBody">The control center exposes runtime health and exports a bounded, redacted diagnostic bundle for support.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section downloads" id="downloads">
+        <div class="shell">
+          <div class="section-heading downloads-heading">
+            <p class="eyebrow" data-i18n="downloadsEyebrow">Download v0.2.2</p>
+            <h2 data-i18n="downloadsTitle">Pick your platform.</h2>
+            <p data-i18n="downloadsLede">Current installers are unsigned prerelease builds. Check the published SHA-256 file after downloading.</p>
+          </div>
+
+          <div class="download-grid">
+            <article class="download-card">
+              <div class="platform-heading"><span class="platform-mark">⊞</span><div><h3>Windows</h3><p>x64 · Setup EXE</p></div></div>
+              <a class="button button-download" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-win-x64.exe" data-i18n="downloadWindows">Download for Windows</a>
+              <a class="checksum" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-win32-x64.txt" data-i18n="viewChecksum">View checksum</a>
+            </article>
+
+            <article class="download-card">
+              <div class="platform-heading"><span class="platform-mark apple-mark">●</span><div><h3>macOS</h3><p>Apple Silicon / Intel · DMG</p></div></div>
+              <div class="split-download">
+                <a class="button button-download" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-arm64.dmg">Apple Silicon</a>
+                <a class="button button-download secondary-download" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-mac-x64.dmg">Intel</a>
+              </div>
+              <a class="checksum" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2" data-i18n="viewChecksums">View checksums</a>
+            </article>
+
+            <article class="download-card">
+              <div class="platform-heading"><span class="platform-mark linux-mark">◇</span><div><h3>Linux</h3><p>x64 · DEB / AppImage</p></div></div>
+              <div class="split-download">
+                <a class="button button-download" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-linux-amd64.deb">DEB</a>
+                <a class="button button-download secondary-download" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/DeepSeek-Harness-Desktop-0.2.2-linux-x86_64.AppImage">AppImage</a>
+              </div>
+              <a class="checksum" href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/download/v0.2.2/SHA256SUMS-linux-x64.txt" data-i18n="viewChecksum">View checksum</a>
+            </article>
+          </div>
+
+          <p class="release-link"><a href="https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2" data-i18n="allReleaseFiles">Release notes and all package formats →</a></p>
+        </div>
+      </section>
+
+      <section class="section boundary shell">
+        <div class="boundary-mark"><img src="app-icon.svg" alt="" width="72" height="72"></div>
+        <div>
+          <p class="eyebrow" data-i18n="boundaryEyebrow">Clear project boundary</p>
+          <h2 data-i18n="boundaryTitle">Upstream Harness inside. Community desktop host outside.</h2>
+          <p data-i18n="boundaryBody">DeepSeek Harness supplies the agent runtime, plugin system, and Web UI. This repository supplies the Electron host, process lifecycle, staged updates, diagnostics, tray integration, and native installers.</p>
+          <p class="boundary-notice" data-i18n="boundaryNotice">This is an unofficial community project and is not a DeepSeek product.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="shell footer-grid">
+        <p>DeepSeek Harness Desktop · MIT License</p>
+        <div><a href="https://github.com/deepseek-ai/deepseek-harness" data-i18n="upstream">Upstream Harness</a><a href="https://github.com/VickylastShao/deepseek-harness-desktop/blob/main/PRIVACY.md" data-i18n="privacy">Privacy</a><a href="https://github.com/VickylastShao/deepseek-harness-desktop/issues" data-i18n="support">Support</a></div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -8,6 +8,11 @@ on:
         required: true
         type: boolean
         default: false
+      prerelease_artifact_run_id:
+        description: Successful workflow run to publish as an unsigned prerelease without rebuilding
+        required: false
+        type: string
+        default: ''
   schedule:
     - cron: '17 19 * * *'
   push:
@@ -15,6 +20,7 @@ on:
       - 'v*'
 
 permissions:
+  actions: read
   contents: write
 
 jobs:
@@ -42,6 +48,7 @@ jobs:
         run: node scripts/validate-release-signing.cjs
 
   build:
+    if: github.event_name != 'workflow_dispatch' || inputs.prerelease_artifact_run_id == ''
     needs: signing-preflight
     strategy:
       fail-fast: false
@@ -304,3 +311,74 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "${GITHUB_REF_NAME}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/latest*.yml release-input/release/SHA256SUMS-*.txt --notes-file release-input/release/RELEASE_NOTES.md --repo "${GITHUB_REPOSITORY}" --verify-tag
+
+  publish-unsigned-prerelease:
+    if: github.event_name == 'workflow_dispatch' && inputs.prerelease_artifact_run_id != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate source workflow provenance
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.prerelease_artifact_run_id }}
+        run: |
+          source_run=$(gh run view "${SOURCE_RUN_ID}" --json conclusion,event,headSha)
+          source_conclusion=$(jq -r .conclusion <<<"${source_run}")
+          source_event=$(jq -r .event <<<"${source_run}")
+          source_sha=$(jq -r .headSha <<<"${source_run}")
+          if [[ "${source_conclusion}" != success || "${source_event}" != workflow_dispatch ]]; then
+            echo "Source run must be a successful workflow_dispatch build." >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "${source_sha}" HEAD; then
+            echo "Source run commit is not an ancestor of the publishing commit." >&2
+            exit 1
+          fi
+          echo "SOURCE_SHA=${source_sha}" >> "${GITHUB_ENV}"
+      - name: Install metadata merger dependencies
+        run: npm ci --omit=dev --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.prerelease_artifact_run_id }}
+          pattern: deepseek-harness-desktop-*
+          path: release-input
+          merge-multiple: true
+      - name: Merge and validate cross-platform desktop update metadata
+        run: node scripts/desktop-update-metadata.cjs merge release-input/update-metadata release-input/release
+      - name: Validate prerelease version and asset names
+        shell: bash
+        run: |
+          app_version=$(node -p "require('./package.json').version")
+          release_tag="v${app_version}"
+          test "$(node -p "require('fs').readFileSync('release-input/release/latest.yml', 'utf8').match(/^version: (.+)$/m)[1]")" = "${app_version}"
+          compgen -G "release-input/release/DeepSeek-Harness-Desktop-${app_version}-*" >/dev/null
+          if gh release view "${release_tag}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            echo "Release ${release_tag} already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
+          echo "RELEASE_TAG=${release_tag}" >> "${GITHUB_ENV}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Generate GitHub change log
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh api --method POST "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            -f tag_name="${RELEASE_TAG}" -f target_commitish="${SOURCE_SHA}" \
+            --jq .body > release-input/generated-changes.md; then
+            echo "## Changes" > release-input/generated-changes.md
+            echo >> release-input/generated-changes.md
+            echo "See the repository commit history for this prerelease." >> release-input/generated-changes.md
+          fi
+      - name: Generate direct-download release notes
+        run: node scripts/generate-release-notes.cjs "${GITHUB_REPOSITORY}" "${RELEASE_TAG}" release-input/generated-changes.md release-input/release/RELEASE_NOTES.md --unsigned-prerelease
+      - name: Publish unsigned prerelease installers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${RELEASE_TAG}" release-input/release/*.exe release-input/release/*.AppImage release-input/release/*.deb release-input/release/*.dmg release-input/release/*.zip release-input/release/latest*.yml release-input/release/SHA256SUMS-*.txt --notes-file release-input/release/RELEASE_NOTES.md --repo "${GITHUB_REPOSITORY}" --target "${SOURCE_SHA}" --prerelease
