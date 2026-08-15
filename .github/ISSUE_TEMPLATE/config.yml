@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Setup and usage questions
+    url: https://github.com/VickylastShao/deepseek-harness-desktop/discussions/categories/q-a
+    about: Ask a question in GitHub Discussions.
+  - name: Security vulnerability
+    url: https://github.com/VickylastShao/deepseek-harness-desktop/security/advisories/new
+    about: Report suspected vulnerabilities privately.
+  - name: Upstream DeepSeek Harness
+    url: https://github.com/deepseek-ai/deepseek-harness/issues
+    about: Report model, plugin, session, tool, and Harness Web UI behavior upstream.
