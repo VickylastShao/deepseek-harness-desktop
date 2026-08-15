@@ -46,7 +46,7 @@ function createPreviewWindow(size) {
   return new BrowserWindow({
     ...size,
     show: false,
-    backgroundColor: '#030811',
+    backgroundColor: '#05070b',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -57,7 +57,7 @@ function createPreviewWindow(size) {
 
 async function capture(window, filename, size) {
   window.setContentSize(size.width, size.height)
-  await new Promise(resolve => setTimeout(resolve, 300))
+  await new Promise(resolve => setTimeout(resolve, 950))
   const hasHorizontalOverflow = await window.webContents.executeJavaScript(
     'document.documentElement.scrollWidth > document.documentElement.clientWidth',
   )
@@ -90,7 +90,7 @@ async function main() {
         }
       })()
     `)
-    if (!websiteState.englishTitle.includes('without the terminal') || !websiteState.chineseTitle.includes('不再守着命令行')) {
+    if (!websiteState.englishTitle.includes('desktop now') || !websiteState.chineseTitle.includes('终于有了桌面版')) {
       throw new Error('Website language switch did not update the hero title')
     }
     if (!websiteState.imagesLoaded) {
