@@ -44,10 +44,10 @@ python3 -m pip install Pillow==12.2.0 CairoSVG==2.9.0
 python3 scripts/generate-readme-media.py
 ```
 
-Verify that committed media is reproducible without modifying the worktree. The
-byte-for-byte check uses the canonical Ubuntu 24.04 CI environment with DejaVu
-Sans and Noto Sans CJK; use WSL or the `Verify README media` workflow from other
-platforms.
+Verify that the committed input manifest is current and that the generator still
+produces valid media without modifying the worktree. The CI workflow installs
+Noto Sans CJK so Chinese captions are rendered instead of falling back to missing
+glyphs.
 
 ```bash
 python3 -m pip install -r docs/media-requirements.txt

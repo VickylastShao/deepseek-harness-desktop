@@ -42,9 +42,8 @@ python3 -m pip install Pillow==12.2.0 CairoSVG==2.9.0
 python3 scripts/generate-readme-media.py
 ```
 
-验证已提交媒体可重复生成，且不修改工作区。字节级校验以 Ubuntu 24.04 CI
-环境中的 DejaVu Sans 和 Noto Sans CJK 为规范字体；其他平台请使用 WSL 或
-`Verify README media` 工作流。
+验证已提交的输入哈希清单仍然有效，并在不修改工作区的前提下确认生成器仍可
+产生符合约束的媒体。CI 工作流会安装 Noto Sans CJK，避免中文字幕回退为缺失字符。
 
 ```bash
 python3 -m pip install -r docs/media-requirements.txt

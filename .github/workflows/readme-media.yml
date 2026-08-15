@@ -12,6 +12,7 @@ on:
       - 'docs/images/desktop-control-center-hero.png'
       - 'docs/images/desktop-startup.png'
       - 'docs/images/desktop-workflow.gif'
+      - 'docs/images/readme-media-inputs.sha256'
       - 'docs/images/social-preview.png'
       - 'scripts/generate-readme-media.py'
   pull_request:
@@ -23,6 +24,7 @@ on:
       - 'docs/images/desktop-control-center-hero.png'
       - 'docs/images/desktop-startup.png'
       - 'docs/images/desktop-workflow.gif'
+      - 'docs/images/readme-media-inputs.sha256'
       - 'docs/images/social-preview.png'
       - 'scripts/generate-readme-media.py'
   workflow_dispatch:
@@ -45,5 +47,5 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y fonts-noto-cjk
           python3 -m pip install --disable-pip-version-check -r docs/media-requirements.txt
-      - name: Reproduce committed media
+      - name: Validate media inputs and generated output constraints
         run: python3 scripts/generate-readme-media.py --check

@@ -1,0 +1,42 @@
+name: Verify product documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/docs-check.yml'
+      - 'README.md'
+      - 'README.zh-CN.md'
+      - 'docs/**'
+      - 'package.json'
+      - 'scripts/generate-release-notes.cjs'
+      - 'test/readme-downloads.test.cjs'
+      - 'test/website-download-prompt.test.cjs'
+  pull_request:
+    paths:
+      - '.github/workflows/docs-check.yml'
+      - 'README.md'
+      - 'README.zh-CN.md'
+      - 'docs/**'
+      - 'package.json'
+      - 'scripts/generate-release-notes.cjs'
+      - 'test/readme-downloads.test.cjs'
+      - 'test/website-download-prompt.test.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify README, guides, media contracts, and website behavior
+        run: node --test test/readme-downloads.test.cjs test/website-download-prompt.test.cjs

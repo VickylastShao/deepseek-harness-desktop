@@ -4,7 +4,7 @@
 
 ## 安装与首次启动
 
-请从[最新 Release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest)
+请从 [v0.2.2 Release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2)
 下载对应平台的安装包。当前版本仍是未签名的预发布构建：
 
 - Windows 可能显示 Microsoft Defender SmartScreen，请先核对发布者提示与 SHA-256。

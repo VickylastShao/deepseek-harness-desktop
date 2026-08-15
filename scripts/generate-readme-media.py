@@ -8,9 +8,9 @@ README rendering does not depend on a build step or a third-party image host.
 from __future__ import annotations
 
 import argparse
+import hashlib
 from io import BytesIO
 from pathlib import Path
-import sys
 from tempfile import TemporaryDirectory
 
 import cairosvg
@@ -21,6 +21,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 IMAGE_DIR = PROJECT_ROOT / "docs" / "images"
 SOCIAL_PREVIEW = IMAGE_DIR / "social-preview.png"
 WORKFLOW_GIF = IMAGE_DIR / "desktop-workflow.gif"
+MEDIA_MANIFEST = IMAGE_DIR / "readme-media-inputs.sha256"
+MEDIA_INPUTS = (
+    Path(__file__).resolve(),
+    PROJECT_ROOT / "docs" / "media-requirements.txt",
+    PROJECT_ROOT / "docs" / "app-icon.svg",
+    IMAGE_DIR / "desktop-startup.png",
+    IMAGE_DIR / "deepseek-harness-main.png",
+    IMAGE_DIR / "desktop-control-center-hero.png",
+)
 
 NAVY = (7, 17, 31)
 NAVY_LIGHT = (13, 36, 62)
@@ -184,20 +193,21 @@ def verify_outputs(social_preview: Path = SOCIAL_PREVIEW, workflow_gif: Path = W
         raise RuntimeError("Workflow GIF exceeds 5 MiB")
 
 
+def media_input_manifest() -> str:
+    return "".join(
+        f"{hashlib.sha256(source.read_bytes()).hexdigest()}  {source.relative_to(PROJECT_ROOT).as_posix()}\n"
+        for source in MEDIA_INPUTS
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="verify committed media reproduces byte for byte")
     args = parser.parse_args()
 
     if args.check:
-        canonical_fonts = [
-            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
-            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
-            Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"),
-            Path("/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc"),
-        ]
-        if not sys.platform.startswith("linux") or not all(candidate.exists() for candidate in canonical_fonts):
-            parser.error("--check requires Linux with the canonical DejaVu and Noto CJK fonts")
+        if MEDIA_MANIFEST.read_text(encoding="utf-8") != media_input_manifest():
+            raise RuntimeError(f"{MEDIA_MANIFEST.relative_to(PROJECT_ROOT)} is stale; regenerate README media")
         with TemporaryDirectory(prefix="deepseek-harness-media-") as directory:
             temporary = Path(directory)
             social_preview = temporary / SOCIAL_PREVIEW.name
@@ -205,18 +215,16 @@ def main() -> None:
             generate_social_preview(social_preview)
             generate_workflow_gif(workflow_gif)
             verify_outputs(social_preview, workflow_gif)
-            if social_preview.read_bytes() != SOCIAL_PREVIEW.read_bytes():
-                raise RuntimeError(f"{SOCIAL_PREVIEW.relative_to(PROJECT_ROOT)} is stale; regenerate README media")
-            if workflow_gif.read_bytes() != WORKFLOW_GIF.read_bytes():
-                raise RuntimeError(f"{WORKFLOW_GIF.relative_to(PROJECT_ROOT)} is stale; regenerate README media")
-        print("Committed README media is reproducible")
+        print("README media inputs and generated output constraints are valid")
         return
 
     generate_social_preview()
     generate_workflow_gif()
     verify_outputs()
+    MEDIA_MANIFEST.write_text(media_input_manifest(), encoding="utf-8")
     print(f"Generated {SOCIAL_PREVIEW.relative_to(PROJECT_ROOT)} ({SOCIAL_PREVIEW.stat().st_size} bytes)")
     print(f"Generated {WORKFLOW_GIF.relative_to(PROJECT_ROOT)} ({WORKFLOW_GIF.stat().st_size} bytes)")
+    print(f"Updated {MEDIA_MANIFEST.relative_to(PROJECT_ROOT)}")
 
 
 if __name__ == "__main__":

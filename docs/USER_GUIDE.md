@@ -5,7 +5,7 @@
 ## Install and first launch
 
 Download the package for your platform from the
-[latest release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/latest).
+[v0.2.2 release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.2).
 The current installers are unsigned prerelease builds:
 
 - Windows may display Microsoft Defender SmartScreen. Review the publisher warning and checksum before continuing.

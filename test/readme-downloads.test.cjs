@@ -63,6 +63,18 @@ test('bilingual READMEs link every current release package and checksum', async 
     for (const name of names) assert.match(document, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u'))
     assert.match(document, new RegExp(`v${manifest.version.replaceAll('.', '\\.')}\\b`, 'u'))
   }
+
+  assert.match(documents[0], /github\/v\/release\/VickylastShao\/deepseek-harness-desktop\?include_prereleases/u)
+  assert.match(documents[1], /github\/v\/release\/VickylastShao\/deepseek-harness-desktop\?include_prereleases/u)
+
+  const guides = await Promise.all([
+    readFile(path.join(projectRoot, 'docs', 'USER_GUIDE.md'), 'utf8'),
+    readFile(path.join(projectRoot, 'docs', 'USER_GUIDE.zh-CN.md'), 'utf8'),
+  ])
+  for (const guide of guides) {
+    assert.doesNotMatch(guide, /releases\/latest/u)
+    assert.match(guide, new RegExp(`releases/tag/v${manifest.version.replaceAll('.', '\\.')}`, 'u'))
+  }
 })
 
 test('bilingual README local images resolve inside the repository', async () => {
@@ -183,5 +195,14 @@ test('README media reproducibility runs in a least-privilege workflow', async ()
   assert.match(workflow, /permissions:\s*\n\s+contents: read/u)
   assert.match(workflow, /runs-on: ubuntu-24\.04/u)
   assert.match(workflow, /python3 scripts\/generate-readme-media\.py --check/u)
+  assert.doesNotMatch(workflow, /(?:pages|id-token): write/u)
+})
+
+test('pull requests run the product documentation contract tests', async () => {
+  const workflow = await readFile(path.join(projectRoot, '.github', 'workflows', 'docs-check.yml'), 'utf8')
+
+  assert.match(workflow, /pull_request:/u)
+  assert.match(workflow, /permissions:\s*\n\s+contents: read/u)
+  assert.match(workflow, /node --test test\/readme-downloads\.test\.cjs test\/website-download-prompt\.test\.cjs/u)
   assert.doesNotMatch(workflow, /(?:pages|id-token): write/u)
 })
