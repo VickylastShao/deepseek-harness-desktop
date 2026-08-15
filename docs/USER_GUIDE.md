@@ -6,7 +6,7 @@
 
 Download the package for your platform from the
 [v0.2.4 release](https://github.com/VickylastShao/deepseek-harness-desktop/releases/tag/v0.2.4).
-The current installers are unsigned prerelease builds:
+The current installers are unsigned release builds:
 
 - Windows may display Microsoft Defender SmartScreen. Review the publisher warning and checksum before continuing.
 - macOS may require **System Settings → Privacy & Security → Open Anyway**.

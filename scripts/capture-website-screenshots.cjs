@@ -80,18 +80,25 @@ async function main() {
     const websiteState = await window.webContents.executeJavaScript(`
       (() => {
         const englishTitle = document.querySelector('h1').textContent
+        const englishEyebrow = document.querySelector('.hero .eyebrow').textContent
         setLanguage('zh')
         const chineseTitle = document.querySelector('h1').textContent
+        const chineseEyebrow = document.querySelector('.hero .eyebrow').textContent
         setLanguage('en')
         return {
           englishTitle,
+          englishEyebrow,
           chineseTitle,
+          chineseEyebrow,
           imagesLoaded: [...document.images].every((image) => image.complete && image.naturalWidth > 0),
         }
       })()
     `)
     if (!websiteState.englishTitle.includes('desktop now') || !websiteState.chineseTitle.includes('终于有了桌面版')) {
       throw new Error('Website language switch did not update the hero title')
+    }
+    if (!websiteState.englishEyebrow.includes('latest release v0.2.4') || !websiteState.chineseEyebrow.includes('最新版本 v0.2.4')) {
+      throw new Error('Website release status does not match the published v0.2.4 release')
     }
     if (!websiteState.imagesLoaded) {
       throw new Error('Website preview contains an image that failed to load')
