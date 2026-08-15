@@ -19,6 +19,10 @@ const copy = {
     boundaryEyebrow: 'Clear project boundary', boundaryTitle: 'Upstream Harness inside. Community desktop host outside.',
     boundaryBody: 'DeepSeek Harness supplies the agent runtime, plugin system, and Web UI. This repository supplies the Electron host, process lifecycle, staged updates, diagnostics, tray integration, and native installers.',
     boundaryNotice: 'This is an unofficial community project and is not a DeepSeek product.', upstream: 'Upstream Harness', privacy: 'Privacy', support: 'Support',
+    downloadPromptEyebrow: 'Support open source', downloadPromptTitle: 'Your download is ready.',
+    downloadPromptDescription: 'If this project is useful to you, consider leaving a Star on GitHub. It helps more people discover the project.',
+    downloadPromptStar: 'Star on GitHub &amp; download', downloadPromptDirect: 'Download without starring',
+    downloadPromptNote: 'No GitHub sign-in or permission is requested by this website.', downloadPromptClose: 'Close download prompt',
   },
   zh: {
     skip: '跳到正文', navFeatures: '功能', navDownloads: '下载', navGithub: 'GitHub',
@@ -38,6 +42,10 @@ const copy = {
     boundaryEyebrow: '明确的项目边界', boundaryTitle: '内部是上游 Harness，外部是社区桌面宿主。',
     boundaryBody: 'DeepSeek Harness 提供智能体运行时、插件系统和 Web UI；本仓库提供 Electron 宿主、进程生命周期、暂存更新、诊断、托盘集成与原生安装包。',
     boundaryNotice: '这是社区维护的非官方项目，不是 DeepSeek 官方产品。', upstream: '上游 Harness', privacy: '隐私', support: '支持',
+    downloadPromptEyebrow: '支持开源项目', downloadPromptTitle: '安装包已经准备好了。',
+    downloadPromptDescription: '如果这个项目对你有帮助，欢迎在 GitHub 留下一颗 Star，让更多人发现它。',
+    downloadPromptStar: '前往 GitHub Star 并下载', downloadPromptDirect: '直接下载，稍后再说',
+    downloadPromptNote: '本站不会要求 GitHub 登录，也不会申请任何账户权限。', downloadPromptClose: '关闭下载提示',
   },
 }
 
@@ -51,6 +59,10 @@ function setLanguage(language) {
     const value = copy[selected][element.dataset.i18n]
     if (value) element.innerHTML = value
   })
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+    const value = copy[selected][element.dataset.i18nAriaLabel]
+    if (value) element.setAttribute('aria-label', value)
+  })
   languageButton.setAttribute('aria-pressed', String(selected === 'zh'))
   localStorage.setItem('dsh-desktop-language', selected)
 }
@@ -62,3 +74,60 @@ setLanguage(initialLanguage)
 languageButton.addEventListener('click', () => {
   setLanguage(document.documentElement.lang === 'zh-CN' ? 'en' : 'zh')
 })
+
+const downloadPrompt = document.querySelector('#download-prompt')
+const promptApi = globalThis.DeepSeekHarnessDownloadPrompt
+
+if (typeof HTMLDialogElement === 'function'
+  && downloadPrompt instanceof HTMLDialogElement
+  && typeof downloadPrompt.showModal === 'function'
+  && promptApi) {
+  const startDownload = (url) => {
+    const link = document.createElement('a')
+    link.href = url
+    link.hidden = true
+    link.rel = 'noopener'
+    document.body.append(link)
+    link.click()
+    link.remove()
+  }
+
+  const controller = promptApi.createDownloadPromptController({
+    storage: localStorage,
+    download: startDownload,
+    openRepository: url => window.open(url, '_blank', 'noopener,noreferrer'),
+  })
+
+  document.querySelectorAll('a.button-download').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      if (!promptApi.shouldInterceptDownloadClick(event)) return
+      event.preventDefault()
+      if (controller.requestDownload(link.href)) downloadPrompt.showModal()
+    })
+  })
+
+  downloadPrompt.querySelector('[data-download-action="star"]').addEventListener('click', () => {
+    controller.chooseStarAndDownload()
+    downloadPrompt.close()
+  })
+
+  downloadPrompt.querySelector('[data-download-action="direct"]').addEventListener('click', () => {
+    controller.chooseDirectDownload()
+    downloadPrompt.close()
+  })
+
+  downloadPrompt.querySelector('[data-download-action="close"]').addEventListener('click', () => {
+    controller.cancel()
+    downloadPrompt.close()
+  })
+
+  downloadPrompt.addEventListener('cancel', () => controller.cancel())
+  downloadPrompt.addEventListener('click', (event) => {
+    if (event.target !== downloadPrompt) return
+    const bounds = downloadPrompt.getBoundingClientRect()
+    if (!promptApi.isPointInsideRect(event, bounds)) {
+      controller.cancel()
+      downloadPrompt.close()
+    }
+  })
+}

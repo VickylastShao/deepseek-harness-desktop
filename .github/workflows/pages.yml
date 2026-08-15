@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'docs/**'
+      - 'test/website-download-prompt.test.cjs'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -27,6 +28,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test website download behavior
+        run: node --test test/website-download-prompt.test.cjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
