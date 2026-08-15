@@ -4,7 +4,7 @@ const copy = {
   en: {
     skip: 'Skip to content', navFeatures: 'Features', navDownloads: 'Downloads', navGithub: 'GitHub',
     eyebrow: 'Open source · v0.2.2 prerelease', heroTitle: 'DeepSeek Harness,<br>without the terminal.',
-    heroLede: 'A self-contained desktop host for the official Harness Web UI. Install it, open it, and start working on Windows, macOS, or Linux.',
+    heroLede: 'A self-contained desktop host for the unmodified upstream Harness Web UI. Install it, open it, and start working on Windows, macOS, or Linux.',
     chooseDownload: 'Choose a download', viewSource: 'View source', heroNote: 'No system-wide Node.js. No persistent command window. No first-launch download.',
     proofRuntimeTitle: 'Self-contained', proofRuntimeBody: 'Node.js + native Harness runtime', proofPlatformsTitle: 'Cross-platform', proofPlatformsBody: 'Windows, macOS, and Linux',
     proofUpdatesTitle: 'Quiet updates', proofUpdatesBody: 'Downloaded in the background', proofOpenTitle: 'Open source', proofOpenBody: 'MIT licensed desktop host',
@@ -27,7 +27,7 @@ const copy = {
   zh: {
     skip: '跳到正文', navFeatures: '功能', navDownloads: '下载', navGithub: 'GitHub',
     eyebrow: '开源 · v0.2.2 预发布版', heroTitle: '使用 DeepSeek Harness，<br>不再守着命令行。',
-    heroLede: '为官方 Harness Web UI 提供完整的桌面宿主。安装、打开，即可在 Windows、macOS 或 Linux 上开始工作。',
+    heroLede: '为未经修改的上游 Harness Web UI 提供完整桌面宿主。安装、打开，即可在 Windows、macOS 或 Linux 上开始工作。',
     chooseDownload: '选择安装包', viewSource: '查看源码', heroNote: '无需全局 Node.js，无需常驻命令行窗口，首次启动无需下载运行时。',
     proofRuntimeTitle: '自带运行时', proofRuntimeBody: 'Node.js + 平台原生 Harness', proofPlatformsTitle: '跨平台', proofPlatformsBody: 'Windows、macOS 与 Linux',
     proofUpdatesTitle: '无感更新', proofUpdatesBody: '运行期间后台下载', proofOpenTitle: '开源', proofOpenBody: 'MIT 许可的桌面宿主',

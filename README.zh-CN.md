@@ -35,12 +35,20 @@
 
 ## 实际体验
 
+<details>
+<summary><strong>播放 7 秒产品演示</strong></summary>
+
 <p align="center">
-  <img src="docs/images/desktop-workflow.gif" alt="DeepSeek Harness Desktop 无需命令行即可启动，随后进入官方 Harness 主页面，并可在控制中心查看运行状态和更新" width="880">
+  <img src="docs/images/desktop-workflow.gif" alt="DeepSeek Harness Desktop 无需命令行即可启动，随后进入未经修改的上游 Harness 主页面，并可在控制中心查看运行状态和更新" width="880">
 </p>
 
-动图来自真实 Electron 应用截图，依次展示启动页面、上游 Harness
-主会话页面和桌面控制中心。
+</details>
+
+演示使用真实 Electron 应用截图：
+
+1. 无需命令行即可启动。
+2. 使用未经修改的上游 Harness Web UI。
+3. 在控制中心检查运行状态、待启用更新和支持工具。
 
 ## 下载
 

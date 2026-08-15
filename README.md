@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>DeepSeek Harness, without the terminal.</strong><br>
-  Install the official Harness experience as a self-contained desktop app for Windows, macOS, and Linux.
+  Run the unmodified upstream Harness Web UI in a self-contained desktop app for Windows, macOS, and Linux.
 </p>
 
 <p align="center">
@@ -35,12 +35,20 @@
 
 ## See it in action
 
+<details>
+<summary><strong>Play the 7-second product tour</strong></summary>
+
 <p align="center">
-  <img src="docs/images/desktop-workflow.gif" alt="DeepSeek Harness Desktop starts without a terminal, opens the official Harness session page, and exposes runtime health and updates in the control center" width="880">
+  <img src="docs/images/desktop-workflow.gif" alt="DeepSeek Harness Desktop starts without a terminal, opens the upstream Harness session page, and exposes runtime health and updates in the control center" width="880">
 </p>
 
-The animation uses screenshots captured from the real Electron app: startup,
-the upstream Harness session page, and the desktop control center.
+</details>
+
+The tour uses screenshots captured from the real Electron app:
+
+1. Launch without a terminal.
+2. Work in the unmodified upstream Harness Web UI.
+3. Check runtime health, staged updates, and support tools in the control center.
 
 ## Download
 

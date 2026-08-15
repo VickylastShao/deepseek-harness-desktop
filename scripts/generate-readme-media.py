@@ -111,6 +111,7 @@ def generate_social_preview() -> None:
 
     draw.rounded_rectangle((68, 474, 420, 532), radius=29, fill=BLUE)
     draw.text((98, 490), "Windows  ·  macOS  ·  Linux", font=font(18, bold=True), fill=WHITE)
+    draw.text((68, 560), "Unofficial community desktop host", font=font(16), fill=MUTED)
 
     screenshot = rounded_screenshot(IMAGE_DIR / "deepseek-harness-main.png", (670, 470), radius=20)
     paste_with_shadow(canvas, screenshot, (562, 93))
@@ -142,24 +143,17 @@ def workflow_frame(source: Path, number: str, english: str, chinese: str) -> Ima
 def generate_workflow_gif() -> None:
     scenes = [
         workflow_frame(IMAGE_DIR / "desktop-startup.png", "1", "Launch without a terminal", "无需命令行即可启动"),
-        workflow_frame(IMAGE_DIR / "deepseek-harness-main.png", "2", "Work in the official Harness UI", "使用完整官方 Harness 界面"),
+        workflow_frame(IMAGE_DIR / "deepseek-harness-main.png", "2", "Work in the upstream Harness UI", "使用未经修改的上游 Harness 界面"),
         workflow_frame(IMAGE_DIR / "desktop-control-center-hero.png", "3", "Control updates, health, and support", "管理更新、运行状态与诊断"),
     ]
 
     frames: list[Image.Image] = []
     durations: list[int] = []
-    hold_durations = [1800, 3200, 2400]
-    transition_steps = 4
+    hold_durations = [1700, 2600, 2100]
 
     for index, scene in enumerate(scenes):
         frames.append(scene)
         durations.append(hold_durations[index])
-        if index == len(scenes) - 1:
-            continue
-        next_scene = scenes[index + 1]
-        for step in range(1, transition_steps + 1):
-            frames.append(Image.blend(scene, next_scene, step / (transition_steps + 1)))
-            durations.append(90)
 
     palette_frames = [frame.quantize(colors=128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.FLOYDSTEINBERG) for frame in frames]
     palette_frames[0].save(

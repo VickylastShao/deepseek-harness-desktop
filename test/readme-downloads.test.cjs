@@ -64,6 +64,9 @@ test('bilingual READMEs lead with a static product hero and a compact animated t
     assert.ok(heroIndex >= 0, 'README must include the real Harness session hero')
     assert.ok(tourIndex > heroIndex, 'animated tour must follow the static hero')
     assert.ok(downloadIndex > tourIndex, 'downloads must follow the product story')
+    const detailsStart = content.lastIndexOf('<details>', tourIndex)
+    const detailsEnd = content.indexOf('</details>', tourIndex)
+    assert.ok(detailsStart >= 0 && detailsEnd > tourIndex, 'animated tours longer than five seconds must be user-controlled')
     assert.match(content, new RegExp(tourHeading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u'))
     assert.match(content, new RegExp(userGuide.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u'))
     assert.match(content, new RegExp(developmentGuide.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'u'))
@@ -95,4 +98,6 @@ test('website metadata uses the repository social preview', async () => {
 
   assert.match(website, /property="og:image" content="https:\/\/vickylastshao\.github\.io\/deepseek-harness-desktop\/images\/social-preview\.png"/u)
   assert.match(website, /name="twitter:card" content="summary_large_image"/u)
+  assert.match(website, /name="twitter:image:alt" content="[^"]+"/u)
+  assert.doesNotMatch(website, /official DeepSeek Harness experience/iu)
 })
